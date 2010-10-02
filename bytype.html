@@ -1,13 +1,25 @@
 <html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/content/site.css">
+  </head>
   <body>
+    <h1> mathblogging </h1>
     {% for type in types %}
-      <h2> {{type.name}} </h2>
-      {% for feed in type.feeds %}
-        <h3> {{feed.title}} </h3>
-        {% for entry in feed.entries %}
-          <p><a href="{{entry.link}}">{{entry.title}}</a></p>
+      <div class="section">
+	<h2> {{type.name}} </h2>
+	<ul>
+	{% for feed in type.feeds %}
+	  <li>
+            <h3> {{feed.title}} </h3>
+	    <ul>
+              {% for entry in feed.entries %}
+	        <li><a href="{{entry.link}}">{{entry.title}}</a></li>
+              {% endfor %}
+	    </ul>
+	  </li>
         {% endfor %}
-      {% endfor %}
+	</ul>
+      </div>
     {% endfor %}
   </body>
 </html>

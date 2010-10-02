@@ -7,5 +7,8 @@ handlers:
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
   login: admin
+- url: /content/(.*)
+  static_files: content/\1
+  upload: content/(.*)
 - url: .*
   script: main.py

@@ -1,0 +1,72 @@
+body {
+    font-family: sans;
+    background-image: url('/content/top-bg-large.png');
+    background-repeat: repeat-x;
+}
+
+body, li, ul, a, h1 {
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+ul {
+    list-style: none outside none;
+}
+
+li {
+    list-style-type: none;
+}
+
+h1 {
+    font-weight: bold;
+    font-size: 45px;
+    padding-left: 30px;
+    color: white;
+    text-align: left;
+    width: 100%;
+    height: 127px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+h2 {
+    font-style: italic;
+    font-family: "Palatino Linotype","Palatino","URW Palladio L",Palladio,"Bitstream Vera Serif",sans-serif;
+    border-bottom: 3px solid gray;
+    color: black;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    clear: both;
+}
+
+.section {
+    margin: 30px;
+    width: 1000px;
+}
+
+.section > ul > li {
+    float: left;
+    height: 230px;
+    width: 300px;
+    margin: 0 0 40px 30px;
+    /* border: thin solid black; */
+}
+
+.section li h3 {
+    border-bottom: thin solid gray;
+}
+
+.section li a {
+    font-size: 90%;
+    color: black;
+    display: block;
+    text-decoration: none;
+    overflow: hidden;
+    width: 300px;
+    line-height: 1;
+    border-bottom: thin dashed gray;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    /* position: absolute; */
+}
