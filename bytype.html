@@ -1,0 +1,13 @@
+<html>
+  <body>
+    {% for type in types %}
+      <h2> {{type.name}} </h2>
+      {% for feed in type.feeds %}
+        <h3> {{feed.title}} </h3>
+        {% for entry in feed.entries %}
+          <p><a href="{{entry.link}}">{{entry.title}}</a></p>
+        {% endfor %}
+      {% endfor %}
+    {% endfor %}
+  </body>
+</html>
