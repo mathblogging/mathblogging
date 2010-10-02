@@ -1,0 +1,4 @@
+cron:
+- description: check for feed updates
+  url: /fetchallsync
+  schedule: every 30 minutes
