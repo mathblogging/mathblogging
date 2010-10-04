@@ -41,10 +41,10 @@ class Feed(db.Model):
         try:
             result = urlfetch.fetch(self.url,deadline=10) # 10 is max deadline
         except urlfetch.DownloadError:
-            logging.error("Downloading URL " + self.url + "failed: timeout.")
+            logging.warning("Downloading URL " + self.url + "failed: timeout.")
             return []
         except urlfetch.ResponseTooLargeError:
-            logging.error("Downloading URL " + self.url + "failed: response tooo large.")
+            logging.warning("Downloading URL " + self.url + "failed: response tooo large.")
             return []
         logging.info("Fetched URL " + self.url)
         updates = []
@@ -109,7 +109,7 @@ class FetchWorker(webapp.RequestHandler):
             feed = Feed.all().filter("url =", url).get()
             if feed:
                 feed.restore_cache()
-        self.redirect("/")
+        self.response.set_status(200)
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
@@ -117,14 +117,14 @@ class FetchAllWorker(webapp.RequestHandler):
         for feed in Feed.all():
             logging.info("Adding fetch task for feed " + feed.title)
             taskqueue.add(url="/fetch", params={'url': feed.url})
-        self.redirect("/")
-
+        self.response.set_status(200)
+ 
 class FetchAllSyncWorker(webapp.RequestHandler):
     def get(self):
         logging.info("FetchAllSyn")
         for feed in Feed.all():
             feed.restore_cache()
-        self.redirect("/")
+        self.response.set_status(200)
         
 
 class InitDatabase(webapp.RequestHandler):
