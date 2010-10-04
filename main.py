@@ -38,7 +38,14 @@ class Feed(db.Model):
             return [] # TODO: schedule a fetch-task !
         return memcache.get(self.url)
     def fetch_entries(self):
-        result = urlfetch.fetch(self.url)
+        try:
+            result = urlfetch.fetch(self.url,deadline=10) # 10 is max deadline
+        except DownloadError:
+            logging.error("Downloading URL " + self.url + "failed: timeout.")
+            return []
+        except ResponseTooLargeError:
+            logging.error("Downloading URL " + self.url + "failed: response tooo large.")
+            return []
         logging.info("Fetched URL " + self.url)
         updates = []
         if result.status_code == 200:
