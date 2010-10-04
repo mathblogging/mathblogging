@@ -42,14 +42,14 @@ h2 {
 
 .section {
     margin: 30px;
-    width: 1000px;
+    /* width: 1000px; */
 }
 
 .section > ul > li {
     float: left;
     height: 230px;
     width: 300px;
-    margin: 0 0 40px 30px;
+    margin: 30px 30px 30px 30px;
     /* border: thin solid black; */
 }
 

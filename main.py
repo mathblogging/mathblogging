@@ -84,15 +84,15 @@ class TypeView(webapp.RequestHandler):
     
     template_values = {
         'types': 
-            [ sections_template("Group Blogs", "groups"),
-              sections_template("High Profile", "highpro"),
-              sections_template("Slow but Deep", "deep"),
-              sections_template("Students and Non-Tenure", "students"),
+            [ sections_template("Editor's Choice", "highpro"),
+              sections_template("Group Blogs", "groups"),
+              sections_template("Researchers", "students"),
+              sections_template("Institutions", "institution"),
+              sections_template("Journalism", "journalism"),
+              sections_template("Communities", "community"),
               sections_template("Microblogging", "micro") ]
         }
     
-    logging.debug("got here!")
-    logging.info("got here 2")
     path = os.path.join(os.path.dirname(__file__), 'bytype.html')
     self.response.out.write(template.render(path, template_values))
 
