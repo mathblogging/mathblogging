@@ -40,10 +40,10 @@ class Feed(db.Model):
     def fetch_entries(self):
         try:
             result = urlfetch.fetch(self.url,deadline=10) # 10 is max deadline
-        except DownloadError:
+        except urlfetch.DownloadError:
             logging.error("Downloading URL " + self.url + "failed: timeout.")
             return []
-        except ResponseTooLargeError:
+        except urlfetch.ResponseTooLargeError:
             logging.error("Downloading URL " + self.url + "failed: response tooo large.")
             return []
         logging.info("Fetched URL " + self.url)
