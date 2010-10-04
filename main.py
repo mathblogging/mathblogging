@@ -49,10 +49,9 @@ class Feed(db.Model):
                 x.title = entry['title']
                 x.link = entry['link']
                 try:
-                    x.content = entry.summary
+                    x.timestamp = entry.updated_parsed
                 except AttributeError:
-                    x.content = entry['title']
-                x.timestamp = entry.updated_parsed
+                    x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
                 updates.append(x)
         return updates          
     def top_entries(self):
@@ -64,7 +63,6 @@ class Entry:
     def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None):
         self.title = title
         self.link = link
-        self.content = content
         self.service = service
         self.timestamp = timestamp
     def printTime(self):
