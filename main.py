@@ -62,7 +62,7 @@ class Feed(db.Model):
                 updates.append(x)
         return updates          
     def top_entries(self):
-        return self.entries()[0:5]
+        return self.entries()[0:10]
     def template_top(self):
         return {'title': self.title, 'entries': self.top_entries() }
       

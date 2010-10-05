@@ -47,14 +47,33 @@ h2 {
 
 .section > ul > li {
     float: left;
+    background-image: url('/content/box-cropped.png');
+    background-repeat: no-repeat;
     height: 230px;
-    width: 300px;
-    margin: 30px 30px 30px 30px;
-    /* border: thin solid black; */
+    width: 301px;
+    padding: 18px 18px 18px 18px;
+    margin: 10px 10px 10px 10px;
+    /*border: thin dashed gray;*/
+}
+
+.section > ul > li > ul {
+    padding-top: 5px;
+    /*border: thin dashed gray;*/
+}
+
+.feedbox {
+    padding: 0px;
+    margin: 0px;
+    height: 227px;
+    overflow: hidden;
+    /*border: thin dashed gray;*/
 }
 
 .section li h3 {
+    padding: 0px;
+    margin: 0px 0px 5px 0px;
     border-bottom: thin solid gray;
+    /*border: thin dashed gray;*/
 }
 
 .section li a {
@@ -62,7 +81,7 @@ h2 {
     color: black;
     display: block;
     text-decoration: none;
-    overflow: hidden;
+    /*overflow: hidden;*/
     width: 300px;
     line-height: 1;
     border-bottom: thin dashed gray;

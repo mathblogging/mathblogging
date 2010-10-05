@@ -10,12 +10,14 @@
 	<ul>
 	{% for feed in type.feeds %}
 	  <li>
-            <h3> {{feed.title}} </h3>
-	    <ul>
+	    <div class="feedbox">
+              <h3> {{feed.title}} </h3>
+	      <ul>
               {% for entry in feed.entries %}
 	        <li><a href="{{entry.link}}">{{entry.title}}</a></li>
               {% endfor %}
-	    </ul>
+	      </ul>
+	    </div>
 	  </li>
         {% endfor %}
 	</ul>
