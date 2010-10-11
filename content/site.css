@@ -10,6 +10,78 @@ body, li, ul, a, h1 {
     border: 0;
 }
 
+/*---------TOP NAVIGATION for PAGES---------  */
+#menu {/* position and background */
+    width: 100%;
+    background-image: url('/content/top-bg-menu1.png');
+    float: left;
+    margin-bottom: 30px;
+    padding-left: 50px;
+}
+
+#menu ul {
+    list-style: none;
+    float: left;
+}
+
+/* style, color and size links and headings to suit */
+
+#menu h2 {
+    font-family: Calibri, Arial, Helvetica, Verdana, "Bitstream Vera Sans", sans-serif;
+    font-weight: bold;
+    margin: 1;
+    padding-left: 15;
+    padding-right: 15;
+    color: white;
+}
+
+#menu li {
+    position: relative;
+    background-image: url('/content/top-bg-menu1.png');
+    border-width: 1;
+    border-style: solid;
+    border-color: #41383C;
+}
+
+#menu li:hover {
+    color: white;
+    background-image: url('/content/top-bg-menu-a1.png');
+}
+
+#menu a {
+    font-family: Calibri, Arial, Helvetica, Verdana, "Bitstream Vera Sans", sans-serif;
+    font-weight: bold;  
+    display: block;
+    color: white;
+    text-decoration: none;
+    margin: 0;
+}
+
+#menu ul ul {
+    position: absolute;
+    border-width: 0;
+    width: 140px;
+    z-index: 500;
+}
+
+#menu ul ul ul {
+    top: 0;
+    left: 100%;
+}
+
+div#menu ul ul,
+div#menu ul li:hover ul ul,
+div#menu ul ul li:hover ul ul
+{display: none;}
+
+div#menu ul li:hover ul,
+div#menu ul ul li:hover ul,
+div#menu ul ul ul li:hover ul
+{display: block;}
+
+
+/* -------------End Top Navigation------------- */
+
 ul {
     list-style: none outside none;
 }
