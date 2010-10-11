@@ -5,6 +5,23 @@
   </head>
   <body>
     <h1> Mathblogging <small style="color: #CCC">v0.01alpha</small></h1>
+<!-- Top Navigation -->
+<div id="menu">
+<ul>
+  <li><h2>Views</h2>
+    <ul>
+      <li><a href="bychoice" title="Selection">Editorial Picks</a></li>
+      <li><a href="bytype" title="By Type">Sorted by Type</a></li>
+      <li><a href="bydate" title="By Date">Sorted by Newest Entry</a></li>
+    </ul>
+  </li>
+</ul>
+<ul>
+  <li><h2><a href="content/about.html" title="about">About</a></h2>
+  </li>
+</ul>						
+</div>
+<!-- end Top Navigation -->
     <p style="padding-left: 35px; padding-bottom: 20px; font-size:110%;">Mathblogging aims to become a convenient place to check on the mathematical blogosphere. <a style="color:black; text-decoration:underline;" href="/content/about.html">Read more here.</a></p>
     {% for type in types %}
       <div class="section">
