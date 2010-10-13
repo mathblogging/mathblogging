@@ -25,9 +25,9 @@ h1 {
     color: white;
     text-align: left;
     width: 100%;
-    height: 127px;
+    height: 98px;
     padding-top: 30px;
-    padding-bottom: 30px;
+    padding-bottom: 0px;
 }
 
 h2 {
@@ -39,6 +39,81 @@ h2 {
     padding-left: 5px;
     clear: both;
 }
+
+/*---------TOP NAVIGATION for PAGES---------  */
+#menu {/* position and background */
+    width: 100%;
+    background-image: url('/content/top-bg-menu1.png');
+    float: left;
+    margin-bottom: 30px;
+    padding-left: 50px;
+}
+
+#menu ul {
+    list-style: none;
+    float: left;
+}
+
+/* style, color and size links and headings to suit */
+
+#menu h2 {
+    font-family: Calibri, Arial, Helvetica, Verdana, "Bitstream Vera Sans", sans-serif;
+    font-style: normal;
+    font-weight: bold;
+    margin: 1;
+    padding-left: 15;
+    padding-right: 15;
+    color: white;
+    border-bottom: none;
+}
+
+#menu li {
+    position: relative;
+    background-image: url('/content/top-bg-menu1.png');
+    border-width: 1;
+    border-style: solid;
+    border-color: #41383C;
+    padding: 2 2;
+}
+
+#menu li:hover {
+    color: white;
+    background-image: url('/content/top-bg-menu-a1.png');
+}
+
+#menu a {
+    font-family: Calibri, Arial, Helvetica, Verdana, "Bitstream Vera Sans", sans-serif;
+    font-weight: bold;  
+    display: block;
+    color: white;
+    text-decoration: none;
+    margin: 0;
+}
+
+#menu ul ul {
+    position: absolute;
+    border-width: 0;
+    width: 140px;
+    z-index: 500;
+}
+
+#menu ul ul ul {
+    top: 0;
+    left: 100%;
+}
+
+div#menu ul ul,
+div#menu ul li:hover ul ul,
+div#menu ul ul li:hover ul ul
+{display: none;}
+
+div#menu ul li:hover ul,
+div#menu ul ul li:hover ul,
+div#menu ul ul ul li:hover ul
+{display: block;}
+
+
+/* -------------End Top Navigation------------- */
 
 .section {
     margin: 30px;
