@@ -87,5 +87,7 @@ h2 {
     border-bottom: thin dashed gray;
     padding-top: 4px;
     padding-bottom: 4px;
+    /* target-name: new;
+    target-new: tab; */
     /* position: absolute; */
 }
