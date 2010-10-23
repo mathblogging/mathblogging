@@ -26,24 +26,139 @@
 
 
     <p style="padding-left: 35px; padding-bottom: 20px; font-size:110%;">Mathblogging aims to become a convenient place to check on the mathematical blogosphere. <a style="color:black; text-decoration:underline;" href="/content/about.html">Read more here.</a></p>
-    #for $type in $types
-      <div class="section">
-	<h2> $type.name </h2>
-	<ul>
-	#for $feed in $type.feeds
-	  <li>
-	    <div class="feedbox">
-              <h3> $feed.title </h3>
-	      <ul>
+
+    <div class="section">
+      <h2> Editor's Choice </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "highpro")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
               #for $entry in $feed.entries
-	        <li><a href="$entry.link">$entry.title</a></li>
+	      <li><a href="$entry.link">$entry.title</a></li>
               #end for
-	      </ul>
-	    </div>
-	  </li>
+	    </ul>
+	  </div>
+	</li>
         #end for
-	</ul>
-      </div>
-    #end for
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2> Group Blogs </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "groups")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
+              #for $entry in $feed.entries
+	      <li><a href="$entry.link">$entry.title</a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2> Researchers </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "students")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
+              #for $entry in $feed.entries
+	      <li><a href="$entry.link">$entry.title</a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2> Institutions </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "institution")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
+              #for $entry in $feed.entries
+	      <li><a href="$entry.link">$entry.title</a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2> Journalism </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "journalism")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
+              #for $entry in $feed.entries
+	      <li><a href="$entry.link">$entry.title</a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2> Communities </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "community")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
+              #for $entry in $feed.entries
+	      <li><a href="$entry.link">$entry.title</a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2> Microblogging </h2>
+      Here goes some text explaining what this category is all about.
+      <ul>
+	#for $feed in $feeds.filter("type =", "micro")
+	<li>
+	  <div class="feedbox">
+            <h3> $feed.title </h3>
+	    <ul>
+              #for $entry in $feed.entries
+	      <li><a href="$entry.link">$entry.title</a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
   </body>
 </html>

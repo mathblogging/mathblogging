@@ -83,23 +83,7 @@ class MainPage(webapp.RequestHandler):
 
 class CheetahHandler(webapp.RequestHandler):
     def get(self):
-        template_values = { 'user': "Mathblogging",}
-        feed_query = Feed.all()
-        feed_query.order('priority')
-
-        feeds_template = lambda q: [ feed.template_top() for feed in q ]
-        sections_template = lambda n, s: {'name': n, 'feeds': feeds_template( Feed.all().filter("type =", s) ) }
-    
-        template_values = {
-            'types': 
-            [ sections_template("Editor's Choice", "highpro"),
-              sections_template("Group Blogs", "groups"),
-              sections_template("Researchers", "students"),
-              sections_template("Institutions", "institution"),
-              sections_template("Journalism", "journalism"),
-              sections_template("Communities", "community"),
-              sections_template("Microblogging", "micro") ]
-            }
+        template_values = { 'feeds': Feed.all().order('priority') }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -123,8 +107,9 @@ class TypeView(webapp.RequestHandler):
               sections_template("Microblogging", "micro") ]
         }
     
-    path = os.path.join(os.path.dirname(__file__), 'bytype.html')
-    self.response.out.write(template.render(path, template_values))
+    path = os.path.join(os.path.dirname(__file__), 'bytype-old.tmpl')
+#    self.response.out.write(template.render(path, template_values))
+    self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class FetchWorker(webapp.RequestHandler):
     def post(self):
