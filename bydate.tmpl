@@ -26,25 +26,43 @@
 
 
     <p style="padding-left: 35px; padding-bottom: 20px; font-size:110%;">Mathblogging aims to become a convenient place to check on the mathematical blogosphere. <a style="color:black; text-decoration:underline;" href="/content/about.html">Read more here.</a></p>
-    #for $type in $types
-    <div class="section">
-      <h2> $type.name </h2>
-      <ul>
-	#for $feed in $type.feeds
-	<li>
-	  <div class="feedbox">
-            <h3> $feed.title </h3>
-	    <ul>
-              #for $entry in $feed.entries
-	      <li><a href="$entry.link">$entry.title</a></li>
-              #end for
-	    </ul>
-	  </div>
-	</li>
-        #end for
-      </ul>
-    </div>
-    #end for
+
+<table id="postsbydate">
+  <thead>
+  <tr>
+    <th align="left" class="datecolumn">
+      Date
+    </th>
+    <th align="left" class="blogcolumn">
+      Blog
+    </th>
+    <th align="left" class="postcolumn">
+      Post
+    </th>
+  </tr>
+  </thead>
+  <tbody>
+  #for $entry in $allentries
+  <tr>
+    <td valign="bottom" class="datecolumn">
+      <div style="overflow:hidden;width:7ex;">
+	<%= entry.printShortTime() %>
+      </div>
+    </td>
+    <td valign="bottom" class="blogcolumn">
+      <div style="overflow:hidden;width:30ex;">
+	<%=entry.service%>
+      </div>
+    </td>
+    <td width="80ex" valign="bottom" class="postcolumn">
+      <div style="overflow:hidden;width:100%;max-width:80ex;">
+	<a href="$entry.link"><%=entry.title%></a>
+      </div>
+    </td>
+  </tr>
+  #end for
+  </tbody>
+</table>
 
   </body>
 </html>

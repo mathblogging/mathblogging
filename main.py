@@ -75,7 +75,22 @@ class Entry:
         self.service = service
         self.timestamp = timestamp
     def printTime(self):
-        return strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)            
+        try:
+            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
+        except TypeError:
+            res = ""
+        return res
+    def printShortTime(self):
+        try:
+            today = time.localtime()
+            if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] <= self.timestamp[2]:
+                return "today"
+            #if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] - 1 <= self.timestamp[2]:
+            #    return "yesterday"
+            res = strftime('%b %d',self.timestamp)
+        except TypeError:
+            res = ""
+        return res
 
 class MainPage(webapp.RequestHandler):
   def get(self):
@@ -87,9 +102,18 @@ class QueryFactory:
 
 class CheetahHandler(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory()}
+        template_values = { 'qf':  QueryFactory() }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class DateView(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries }
+    
+        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class TypeView(webapp.RequestHandler):
@@ -159,6 +183,7 @@ def main():
   application = webapp.WSGIApplication(
                                        [('/', MainPage),
                                         ('/bytype', TypeView),
+                                        ('/bydate', DateView),
                                         ('/fetchallsync', FetchAllSyncWorker),
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
