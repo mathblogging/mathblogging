@@ -81,9 +81,13 @@ class MainPage(webapp.RequestHandler):
   def get(self):
       self.redirect("/bytype")
 
+class QueryFactory:
+  def get(self):
+      return Feed.all()
+
 class CheetahHandler(webapp.RequestHandler):
     def get(self):
-        template_values = { 'feeds': Feed.all().order('priority') }
+        template_values = { 'qf':  QueryFactory()}
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
