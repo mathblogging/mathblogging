@@ -45,17 +45,17 @@
   #for $entry in $allentries
   <tr>
     <td valign="bottom" class="datecolumn">
-      <div style="overflow:hidden;width:7ex;">
+      <div>
 	<%= entry.printShortTime() %>
       </div>
     </td>
     <td valign="bottom" class="blogcolumn">
-      <div style="overflow:hidden;width:30ex;">
+      <div>
 	<%=entry.service%>
       </div>
     </td>
     <td width="80ex" valign="bottom" class="postcolumn">
-      <div style="overflow:hidden;width:100%;max-width:80ex;">
+      <div>
 	<a href="$entry.link"><%=entry.title%></a>
       </div>
     </td>

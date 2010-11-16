@@ -201,19 +201,26 @@ div#menu ul ul ul li:hover ul
 
 #postsbydate {
     table-layout: fixed;
-    margin: 3ex;
+    margin: 5ex;
+    padding: 5px;
+    border: 1px solid black;
+    box-shadow: 4px 4px 8px black;
+    -webkit-box-shadow: 4px 4px 8px black;
 }
 
 #postsbydate td {
     border-bottom: 1px dashed gray;
-    overflow: hidden;
-    white-space: nowrap;
 }
 
 #postsbydate tbody .datecolumn {
     width: 7ex;
     font-size: 80%;
     text-align: left;
+}
+
+#postsbydate tbody div {
+    height: 1.4em;
+    overflow: hidden;
 }
 
 #postsbydate tbody .blogcolumn {
