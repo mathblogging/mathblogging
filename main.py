@@ -116,6 +116,15 @@ class DateView(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
+class FeedHandler(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries }
+    
+        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 class TypeView(webapp.RequestHandler):
   def get(self):
     feed_query = Feed.all()
@@ -188,7 +197,8 @@ def main():
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/init', InitDatabase),
-                                        ('/cheetah', CheetahHandler)],
+                                        ('/cheetah', CheetahHandler),
+                                        ('/feed', FeedHandler)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
 

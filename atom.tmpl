@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+ <title>Mathblogging.org</title>
+ <link href="http://www.mathblogging.org/feed" rel="self"/>
+ <link href="http://www.mathblogging.org/"/>
+ <updated>2010-11-10T21:50:23-05:00</updated>
+ <id>Mathblogging.org</id>
+ <author>
+   <name>Peter Krautzberger</name>
+   <email>pkrautzb@umich.edu</email>
+ </author>
+
+ 
+
+
+#for $entry in $allentries
+ <entry>
+   <title> <%=entry.title%> </title>
+   <link href="$entry.link"/>
+   <updated><%=entry.printTime()%></updated>
+   <id><%=entry.service%><%=entry.printTime()%><%=entry.title%></id>
+   <content type="html"> by <%=entry.service%>
+</content>
+ </entry>
+ #end for
+ 
+</feed>
