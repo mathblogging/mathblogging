@@ -140,30 +140,6 @@ class FeedHandler2(webapp.RequestHandler):
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-
-#class TypeView(webapp.RequestHandler):
-#  def get(self):
-#    feed_query = Feed.all()
-#    feed_query.order('priority')
-#
-#    feeds_template = lambda q: [ feed.template_top() for feed in q ]
-#    sections_template = lambda n, s: {'name': n, 'feeds': feeds_template( Feed.all().filter("type =", s) ) }
-#    
-#    template_values = {
-#        'types': 
-#            [ sections_template("Editor's Choice", "highpro"),
-#              sections_template("Group Blogs", "groups"),
-#              sections_template("Researchers", "students"),
-#              sections_template("Institutions", "institution"),
-#              sections_template("Journalism", "journalism"),
-#              sections_template("Communities", "community"),
-#              sections_template("Microblogging", "micro") ]
-#        }
-#    
-#    path = os.path.join(os.path.dirname(__file__), 'bytype-old.tmpl')
-##    self.response.out.write(template.render(path, template_values))
-#    self.response.out.write(Template( file = path, searchList = #(template_values,) ))
     
 
 class FetchWorker(webapp.RequestHandler):
@@ -216,7 +192,6 @@ def main():
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/init', InitDatabase),
-#                                        ('/cheetah', CheetahHandler),
                                         ('/feed_big', FeedHandler2),
                                         ('/feed_small', FeedHandler1)],
                                        debug=True)
