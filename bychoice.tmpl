@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/content/site.css">
+    <title>Mathblogging v0.01alpha</title>
+  </head>
+  <body>
+    <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging <small style="color: #CCC">v0.01alpha</small></a></h1>
+
+
+
+<!-- Top Navigation -->
+<div id="menu">
+<ul>
+  <li><h2>Views</h2>
+    <ul>
+      <li><a href="/bydate" title="By Date">Posts by Date</a></li>
+      <li><a href="/bytype" title="By Type">Blogs by Type</a></li>
+      <li><a href="/bychoice" title="Selection">Editorial Picks</a></li>
+    </ul>
+  </li>
+</ul>
+<ul>
+  <li><h2><a href="content/about.html" title="about">About</a></h2>
+  </li>
+</ul>						
+</div>
+<!-- end Top Navigation -->
+
+
+    <p style="padding-left: 35px; padding-bottom: 20px; font-size:110%;"> If you are just getting to know the mathematical blogosphere,  check out what's going on at some of our favorite blogs.
+ <a style="color:black; text-decoration:underline;" href="/content/about.html">Read more here.</a></p>
+
+    <div class="section">
+      <h2> Our favorites </h2>
+      <ul>
+	#for $feed in $qf.get().filter("type =", "highpro")
+	<li>
+	  <div class="feedbox">
+            <h3> <%=feed.title%> </h3>
+	    <ul>
+              #for $entry in feed.entries()
+	      <li><a href="$entry.link"><%=entry.title%></a></li>
+              #end for
+	    </ul>
+	  </div>
+	</li>
+        #end for
+      </ul>
+    </div>
+
+
+  </body>
+</html>

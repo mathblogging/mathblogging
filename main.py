@@ -94,17 +94,24 @@ class Entry:
 
 class MainPage(webapp.RequestHandler):
   def get(self):
-      self.redirect("/bytype")
+      self.redirect("/content/start.html")
 
 class QueryFactory:
   def get(self):
       return Feed.all()
 
-class CheetahHandler(webapp.RequestHandler):
+class TypeView(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory() }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        
+class ChoiceView(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'qf':  QueryFactory() }
+    
+        path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateView(webapp.RequestHandler):
@@ -116,7 +123,7 @@ class DateView(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class FeedHandler(webapp.RequestHandler):
+class FeedHandler1(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
@@ -125,28 +132,39 @@ class FeedHandler(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class TypeView(webapp.RequestHandler):
-  def get(self):
-    feed_query = Feed.all()
-    feed_query.order('priority')
+class FeedHandler2(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries }
+    
+        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-    feeds_template = lambda q: [ feed.template_top() for feed in q ]
-    sections_template = lambda n, s: {'name': n, 'feeds': feeds_template( Feed.all().filter("type =", s) ) }
+
+#class TypeView(webapp.RequestHandler):
+#  def get(self):
+#    feed_query = Feed.all()
+#    feed_query.order('priority')
+#
+#    feeds_template = lambda q: [ feed.template_top() for feed in q ]
+#    sections_template = lambda n, s: {'name': n, 'feeds': feeds_template( Feed.all().filter("type =", s) ) }
+#    
+#    template_values = {
+#        'types': 
+#            [ sections_template("Editor's Choice", "highpro"),
+#              sections_template("Group Blogs", "groups"),
+#              sections_template("Researchers", "students"),
+#              sections_template("Institutions", "institution"),
+#              sections_template("Journalism", "journalism"),
+#              sections_template("Communities", "community"),
+#              sections_template("Microblogging", "micro") ]
+#        }
+#    
+#    path = os.path.join(os.path.dirname(__file__), 'bytype-old.tmpl')
+##    self.response.out.write(template.render(path, template_values))
+#    self.response.out.write(Template( file = path, searchList = #(template_values,) ))
     
-    template_values = {
-        'types': 
-            [ sections_template("Editor's Choice", "highpro"),
-              sections_template("Group Blogs", "groups"),
-              sections_template("Researchers", "students"),
-              sections_template("Institutions", "institution"),
-              sections_template("Journalism", "journalism"),
-              sections_template("Communities", "community"),
-              sections_template("Microblogging", "micro") ]
-        }
-    
-    path = os.path.join(os.path.dirname(__file__), 'bytype-old.tmpl')
-#    self.response.out.write(template.render(path, template_values))
-    self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class FetchWorker(webapp.RequestHandler):
     def post(self):
@@ -192,13 +210,15 @@ def main():
   application = webapp.WSGIApplication(
                                        [('/', MainPage),
                                         ('/bytype', TypeView),
+                                        ('/bychoice', ChoiceView),
                                         ('/bydate', DateView),
                                         ('/fetchallsync', FetchAllSyncWorker),
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/init', InitDatabase),
-                                        ('/cheetah', CheetahHandler),
-                                        ('/feed', FeedHandler)],
+#                                        ('/cheetah', CheetahHandler),
+                                        ('/feed_big', FeedHandler2),
+                                        ('/feed_small', FeedHandler1)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
 
