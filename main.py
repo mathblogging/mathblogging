@@ -19,6 +19,19 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
+# Escape HTML entities.
+html_escape_table = {
+    "&": "&amp;",
+#    '"': "&quot;",
+#    "'": "&apos;",
+    ">": "&gt;",
+    "<": "&lt;",
+    }
+
+def html_escape(text):
+    """Produce entities within text."""
+    return "".join(html_escape_table.get(c,c) for c in text)
+# end
 
 class Feed(db.Model):
     url = db.StringProperty()
@@ -54,9 +67,9 @@ class Feed(db.Model):
             feed = feedparser.parse(result.content)
             for entry in feed['entries']:
                 x = Entry()
-                x.service = self.title
-                x.title = entry['title']
-                x.link = entry['link']
+                x.service = html_escape(self.title)
+                x.title = html_escape(entry['title'])
+                x.link = html_escape(entry['link'])
                 try:
                     x.timestamp = entry.updated_parsed
                 except AttributeError:
