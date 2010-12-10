@@ -81,7 +81,7 @@ h2 {
 #menu li {
     display: inline;
     position: relative;
-    padding: 2px;
+    padding: 1px;
 }
 
 #menu li:hover {
