@@ -33,6 +33,15 @@ transformers:
       external_name: key
       export_transform: transform.key_id_or_name_as_string
 
+    - property: homepage
+      external_name: homepage
+
+    - property: comments
+      external_name: comments
+
+    - property: favicon
+      external_name: favicon
+
     - property: person
       external_name: person
       # Type: String Stats: 128 properties of this type in this kind.
@@ -45,6 +54,7 @@ transformers:
     - property: subject
       external_name: subject
       # Type: String Stats: 128 properties of this type in this kind.
+      import_transform: eval
 
     - property: title
       external_name: title

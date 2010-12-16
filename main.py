@@ -56,12 +56,15 @@ menu = """
 """
 
 class Feed(db.Model):
-    url = db.StringProperty()
+    url = db.LinkProperty()
+    homepage = db.StringProperty()
     title = db.StringProperty()
     person = db.StringProperty()
-    subject = db.StringProperty()
-    type = db.StringProperty() # can be 'groups', 'highpro', 'deep', 'students', 'micro'
+    subject = db.StringListProperty()
+    type = db.StringProperty() # can be 'groups', 'highpro', 'deep', 'students', 'micro', 'mathblogging'
     priority = db.IntegerProperty()
+    favicon = db.StringProperty()
+    comments = db.StringProperty()
     def restore_cache(self):
         logging.info("Restoring Cache of Feed " + self.title)
         #try: 
@@ -92,6 +95,7 @@ class Feed(db.Model):
                 x.service = html_escape(self.title)
                 x.title = html_escape(entry['title'])
                 x.link = html_escape(entry['link'])
+                x.homepage = self.homepage
                 try:
                     x.timestamp = entry.updated_parsed
                 except AttributeError:
@@ -104,9 +108,10 @@ class Feed(db.Model):
         return {'title': self.title, 'entries': self.top_entries() }
       
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None):
+    def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None):
         self.title = title
         self.link = link
+        self.homepage = homepage
         self.service = service
         self.timestamp = timestamp
     def printTime(self):
@@ -226,11 +231,14 @@ class InitDatabase(webapp.RequestHandler):
         if Feed.all().count() == 0:
             feed = Feed()
             feed.url = "http://peter.krautzberger.info/atom.xml"
+            feed.homepage = "http://peter.krautzberger.info"
             feed.title = "thelazyscience"
             feed.person = "Peter Krautzberger"
-            feed.subject = "math.LO"
+            feed.subject = ["math.LO"]
             feed.type = "students"
             feed.priority = 1
+            feed.favicon = "http://www.mathblogging.org/content/favicon.ico"
+            feed.comments = "http://thelazyscience.disqus.com/latest.rss"
             feed.put()
         self.redirect('/')
         
