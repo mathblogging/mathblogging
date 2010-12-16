@@ -46,7 +46,9 @@ menu = """
   </li>
 </ul>
 <ul>
-  <li><h2><a href="content/about.html" title="about">About</a></h2>
+  <li><h2><a href="/about" title="About">About</a></h2>
+  </li>
+  <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
   </li>
 </ul>						
 </div>
@@ -133,6 +135,24 @@ class QueryFactory:
   def get(self):
       return Feed.all()
 
+class StartPage(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        path = os.path.join(os.path.dirname(__file__), 'start.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class AboutPage(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        path = os.path.join(os.path.dirname(__file__), 'about.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class FeedsPage(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        path = os.path.join(os.path.dirname(__file__), 'feeds.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 class TypeView(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory(), 'menu': menu }
@@ -217,7 +237,9 @@ class InitDatabase(webapp.RequestHandler):
 
 def main():
   application = webapp.WSGIApplication(
-                                       [('/', MainPage),
+                                       [('/', StartPage),
+                                        ('/about', AboutPage),
+                                        ('/feeds', FeedsPage),
                                         ('/bytype', TypeView),
                                         ('/bychoice', ChoiceView),
                                         ('/bydate', DateView),
