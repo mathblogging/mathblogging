@@ -39,9 +39,9 @@ menu = """
 <ul>
   <li><h2>Views</h2>
     <ul>
-      <li><a href="/bydate" title="By Date">Posts by Date</a></li>
-      <li><a href="/bytype" title="By Type">Blogs by Type</a></li>
-      <li><a href="/bychoice" title="Selection">Editorial Picks</a></li>
+      <li><a href="/bydate" title="Latest Posts">Latest Posts</a></li>
+      <li><a href="/bytype" title="By Category">By Category</a></li>
+      <li><a href="/bychoice" title="Our Favourites">Our Favourites</a></li>
     </ul>
   </li>
 </ul>
