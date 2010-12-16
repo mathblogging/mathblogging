@@ -46,9 +46,9 @@ menu = """
   </li>
 </ul>
 <ul>
-  <li><h2><a href="/about" title="About">About</a></h2>
-  </li>
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
+  </li>
+  <li><h2><a href="/about" title="About">About</a></h2>
   </li>
 </ul>						
 </div>
