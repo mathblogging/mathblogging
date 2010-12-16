@@ -1,8 +1,10 @@
 body {
     font-family: Calibri, Arial, Helvetica, Verdana, "Bitstream Vera Sans", sans-serif;
-    background: #FFFFFF;
-/*    background: -webkit-gradient(linear,left top, left 400px, color-stop(0, rgb(200,200,200)), color-stop(1, rgb(255,255,255)));*/
-    background: -moz-linear-gradient(center top , #DDDDDD 0%, #FFFFFF 400px) repeat scroll 0 0 transparent;
+    height: 600px;
+    background: #FFFFFF; 
+    background-repeat: no-repeat; 
+    background-image: -webkit-gradient(linear,left top, 0 330, color-stop(0, #444444), color-stop(0.45, #AAAAAA), color-stop(1, #FFFFFF));
+    background-image: -moz-linear-gradient(center top , #444444 0%, #AAAAAA 150px, #FFFFFF 330px);
 }
 
 body, li, ul, a, h1 {
@@ -21,9 +23,6 @@ li {
 }
 
 h1 {
-    background: #AAAAAA;
-    background: -webkit-gradient(linear,left top,left bottom, color-stop(0, rgb(60,60,60)), color-stop(1, rgb(180,180,180)));
-    background: -moz-linear-gradient(center top , #444444 0%, #AAAAAA 100%) repeat scroll 0 0 transparent;
     font-weight: bold;
     font-size: 45px;
     padding-left: 30px;
