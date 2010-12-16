@@ -33,6 +33,26 @@ def html_escape(text):
     return "".join(html_escape_table.get(c,c) for c in text)
 # end
 
+menu = """
+<!-- Top Navigation -->
+<div id="menu">
+<ul>
+  <li><h2>Views</h2>
+    <ul>
+      <li><a href="/bydate" title="By Date">Posts by Date</a></li>
+      <li><a href="/bytype" title="By Type">Blogs by Type</a></li>
+      <li><a href="/bychoice" title="Selection">Editorial Picks</a></li>
+    </ul>
+  </li>
+</ul>
+<ul>
+  <li><h2><a href="content/about.html" title="about">About</a></h2>
+  </li>
+</ul>						
+</div>
+<!-- end Top Navigation -->
+"""
+
 class Feed(db.Model):
     url = db.StringProperty()
     title = db.StringProperty()
@@ -115,14 +135,14 @@ class QueryFactory:
 
 class TypeView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory() }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
         
 class ChoiceView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory() }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu }
     
         path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -131,7 +151,7 @@ class DateView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu }
     
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -140,7 +160,7 @@ class FeedHandler1(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -149,7 +169,7 @@ class FeedHandler2(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
