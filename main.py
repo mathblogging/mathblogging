@@ -157,32 +157,32 @@ class QueryFactory:
 
 class StartPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
         path = os.path.join(os.path.dirname(__file__), 'start.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class AboutPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
         path = os.path.join(os.path.dirname(__file__), 'about.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class FeedsPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
         path = os.path.join(os.path.dirname(__file__), 'feeds.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class TypeView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
         
 class ChoiceView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
     
         path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -191,7 +191,7 @@ class DateView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer }
     
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
