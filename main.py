@@ -48,7 +48,7 @@ menu = """
     <ul>
       <li><a href="/bydate" title="Latest Posts">Latest Posts</a></li>
       <li><a href="/bytype" title="By Category">By Category</a></li>
-      <li><a href="/bychoice" title="Our Favourites">Our Favourites</a></li>
+      <li><a href="/bychoice" title="Our Favorites">Our Favorites</a></li>
     </ul>
   </li>
 </ul>
