@@ -34,6 +34,13 @@ def html_escape(text):
 # end
 
 menu = """
+  <head>
+    <link rel="stylesheet" type="text/css" href="/content/site.css">
+    <title>Mathblogging v0.01alpha</title>
+  </head>
+  <body>
+    <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging <small style="color: #CCC">v0.01alpha</small></a></h1>
+
 <!-- Top Navigation -->
 <div id="menu">
 <ul>
