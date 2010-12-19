@@ -11,7 +11,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "highpro")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link"><%=entry.title%></a></li>

@@ -33,7 +33,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "groups")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -52,7 +52,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "students")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -71,7 +71,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "journalism")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -90,7 +90,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "community")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -109,7 +109,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "institution")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -128,7 +128,7 @@ $menu
 	#for $feed in $qf.get().filter("type =", "micro")
 	<li>
 	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
+            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link"><%=entry.title%></a></li>
