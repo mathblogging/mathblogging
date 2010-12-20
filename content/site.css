@@ -33,7 +33,6 @@ h1 {
     padding-left: 30px;
     color: white;
     text-align: left;
-    width: 100%;
     padding-top: 30px;
     padding-bottom: 30px;
     margin-bottom: 0px;
@@ -53,7 +52,6 @@ h2 {
 #menu {/* position and background */
     background: white;
     display: block;
-    width: 100%;
     margin: 0px;
     padding-top: 3px;
     padding-left: 20px;
@@ -151,7 +149,6 @@ div#menu ul ul ul li:hover ul
 /* ------------ Begin Disqus --------------- */
 .disqus {
    padding-top: 30px;
-   width: 100%;
    clear: both;
 }
 
@@ -165,8 +162,7 @@ div#menu ul ul ul li:hover ul
 
 /* ------------ Begin Footer --------------- */
 .footer {
-   padding-top: 30px;
-   width: 100%;
+   padding-top: 50px;
    clear: both;
    color: gray;
    font-size: 66%;
@@ -188,6 +184,10 @@ div#menu ul ul ul li:hover ul
     padding: 18px 18px 18px 18px;
     margin: 10px 10px 10px 10px;
     /*border: thin dashed gray;*/
+}
+
+.feedbox-list > li.small {
+    height: 4em;
 }
 
 .feedbox-list > li > ul {
