@@ -62,10 +62,8 @@ menu = """
 <!-- end Top Navigation -->
 """
 
-footer = """
-
+disqus = """
 <!-- disqus code-->
-
 <div id="disqus_thread"></div>
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
@@ -85,7 +83,9 @@ footer = """
 <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
 <!-- end disqus code-->
+"""
 
+footer = """
 <!-- copyright footer -->
 <br />
 <br />
@@ -187,32 +187,32 @@ class QueryFactory:
 
 class StartPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
         path = os.path.join(os.path.dirname(__file__), 'start.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class AboutPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
         path = os.path.join(os.path.dirname(__file__), 'about.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class FeedsPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
         path = os.path.join(os.path.dirname(__file__), 'feeds.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class TypeView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
         
 class ChoiceView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
     
         path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -221,7 +221,7 @@ class DateView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer, 'disqus': disqus }
     
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -230,7 +230,7 @@ class FeedHandler1(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'disqus': disqus }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -239,7 +239,7 @@ class FeedHandler2(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'disqus': disqus }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
