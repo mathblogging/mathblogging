@@ -2,38 +2,18 @@
 
 $menu
 
-<!--    <p style="padding-left: 35px; padding-bottom: 20px; font-size:110%;">Mathblogging aims to become a convenient place to check on the mathematical blogosphere. <a style="color:black; text-decoration:underline;" href="/content/about.html">Read more here.</a></p>
--->
-<p style="padding-left: 35px; padding-bottom: 20px; font-size:110%;">There are many different kinds of blogs and newsfeeds around. We tried to structure them a litte.</a></p>
+<div class="content">
 
+<p> There are many different kinds of blogs and newsfeeds around. We tried to structure them a litte.</a></p>
 
-<!--    <div class="section">
-      <h2> Editor's Choice </h2>
-      Here goes some text explaining what this category is all about.
-      <ul>
-	#for $feed in $qf.get().filter("type =", "highpro")
-	<li>
-	  <div class="feedbox">
-            <h3> <%=feed.title%> </h3>
-	    <ul>
-              #for $entry in feed.entries()
-	      <li><a href="$entry.link"><%=entry.title%></a></li>
-              #end for
-	    </ul>
-	  </div>
-	</li>
-        #end for
-      </ul>
-    </div>
--->
-    <div class="section">
       <h2> Group Blogs </h2>
       Group blogs tend to be more research focused and less personal but are often more frequently updated and usually have more frequent discussions.
-      <ul>
+
+      <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "groups")
 	<li>
 	  <div class="feedbox">
-            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
+            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -43,16 +23,14 @@ $menu
 	</li>
         #end for
       </ul>
-    </div>
 
-    <div class="section">
       <h2> Individual Researchers </h2>
       The majority of mathematical blogs are run by individual researchers mixing research and personal interests.
-      <ul>
+      <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "students")
 	<li>
 	  <div class="feedbox">
-            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
+            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -62,16 +40,14 @@ $menu
 	</li>
         #end for
       </ul>
-    </div>
 
-    <div class="section">
       <h2> Journalistic Writers </h2>
       More frequent in the science blogosphere journalistic blogs focus on communicating research to a wider audience.
-      <ul>
+      <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "journalism")
 	<li>
 	  <div class="feedbox">
-            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
+            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -81,16 +57,14 @@ $menu
 	</li>
         #end for
       </ul>
-    </div>
 
-    <div class="section">
       <h2> Communities </h2>
       Communities are a rich source for online discussions so we wouldn't want to miss them here.
-      <ul>
+      <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "community")
 	<li>
 	  <div class="feedbox">
-            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
+            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -100,16 +74,14 @@ $menu
 	</li>
         #end for
       </ul>
-    </div>
 
-    <div class="section">
       <h2> Institutions </h2>
       Some institutions have interesting feeds, too.
-      <ul>
+      <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "institution")
 	<li>
 	  <div class="feedbox">
-            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
+            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
@@ -119,16 +91,14 @@ $menu
 	</li>
         #end for
       </ul>
-    </div>
 
-    <div class="section">
       <h2> Microblogging </h2>
       Not yet taking off but mathematical microblogging is here to stay.
-      <ul>
+      <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "micro")
 	<li>
 	  <div class="feedbox">
-            <h3> <a href="$feed.homepage"><%=feed.title%> </a> </h3>
+            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link"><%=entry.title%></a></li>
@@ -138,9 +108,12 @@ $menu
 	</li>
         #end for
       </ul>
-    </div>
+
+      
 
 $disqus
+
+</div>
 
 $footer
 

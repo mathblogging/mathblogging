@@ -14,6 +14,11 @@ body, li, ul, a, h1 {
     color: black;
 }
 
+/* A div of class content wraps all of the content of the page, including disqus but without menu and footer. It sole purpose is to give all page content an appropriate margin. */
+.content {
+    margin: 30px;
+}
+
 ul {
     list-style: none outside none;
 }
@@ -140,16 +145,38 @@ div#menu ul li:hover ul,
 div#menu ul ul li:hover ul,
 div#menu ul ul ul li:hover ul
 {display: block;}
-
-
 /* -------------End Top Navigation------------- */
 
-.section {
-    margin: 30px;
-    /* width: 1000px; */
+
+/* ------------ Begin Disqus --------------- */
+.disqus {
+   padding-top: 30px;
+   width: 100%;
+   clear: both;
 }
 
-.section > ul > li {
+.disqus hr {
+    color: gray;
+    height: 1px;
+}
+/* ------------ End Disqus  --------------- */
+
+
+
+/* ------------ Begin Footer --------------- */
+.footer {
+   padding-top: 30px;
+   width: 100%;
+   clear: both;
+   color: gray;
+   font-size: 66%;
+   text-align: center;
+}
+/* ------------ End Footer  --------------- */
+
+
+/* ------------ Begin Feedboxes --------------- */
+.feedbox-list > li {
     float: left;
     box-shadow: 4px 4px 7px black;
     -webkit-box-shadow: 4px 4px 7px black;
@@ -163,7 +190,7 @@ div#menu ul ul ul li:hover ul
     /*border: thin dashed gray;*/
 }
 
-.section > ul > li > ul {
+.feedbox-list > li > ul {
     padding-top: 5px;
     /*border: thin dashed gray;*/
 }
@@ -176,14 +203,18 @@ div#menu ul ul ul li:hover ul
     /*border: thin dashed gray;*/
 }
 
-.section li h3 {
+.feedbox-list li h3 {
     padding: 0px;
     margin: 0px 0px 5px 0px;
     border-bottom: thin solid gray;
     /*border: thin dashed gray;*/
 }
 
-.section li a {
+.feedbox-list li h3 a{
+   border-bottom: none;
+}
+
+.feedbox-list li a {
     font-size: 90%;
     color: black;
     display: block;
@@ -198,6 +229,12 @@ div#menu ul ul ul li:hover ul
     target-new: tab; */
     /* position: absolute; */
 }
+
+/* ------------ End Feedboxes --------------- */
+
+
+
+/* ------------ Begin Date View Table --------------- */
 
 #postsbydate {
     table-layout: fixed;
@@ -233,8 +270,13 @@ div#menu ul ul ul li:hover ul
     text-align: left;
 }
 
+#postsbydate a {
+   text-decoration: none;
+}
+
 #postsbydate .postcolumn a {
     font-size: 90%;
-    text-decoration: none;
     color: black;
 }
+
+/* ------------ End Date View Table --------------- */
