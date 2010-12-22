@@ -141,10 +141,13 @@ class Feed(db.Model):
         #except:
             #logging.info("There was a problem downloading " + self.url)
             #pass
-    def entries(self):
+    def entries(self,num=None):
         if not memcache.get(self.url):
             return [] # TODO: schedule a fetch-task !
-        return memcache.get(self.url)
+        if num == None:
+            return memcache.get(self.url)
+        result = memcache.get(self.url)
+        return result[0:num]
     def fetch_entries(self):
         try:
             result = urlfetch.fetch(self.url,deadline=10) # 10 is max deadline
