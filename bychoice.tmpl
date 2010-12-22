@@ -9,7 +9,7 @@ $menu
 
       <h2> Our Favourites </h2>
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "highpro")
+	#for $feed in $qf.get().filter("type =", "highpro").order("title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>

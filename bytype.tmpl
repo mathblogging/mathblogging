@@ -10,7 +10,7 @@ $menu
       Group blogs tend to be more research focused and less personal but are often more frequently updated and usually have more frequent discussions.
 
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "groups")
+	#for $feed in $qf.get().filter("type =", "groups").order("title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -29,7 +29,7 @@ $menu
       <h2> Individual Researchers </h2>
       The majority of mathematical blogs are run by individual researchers mixing research and personal interests.
       <ul class="feedbox-list">
-	#for $feed in $gqf.get("SELECT * FROM Feed WHERE type IN ('highpro','students')")
+	#for $feed in $gqf.get("SELECT * FROM Feed WHERE type IN ('highpro','students') ORDER BY title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -48,7 +48,7 @@ $menu
       <h2> Journalistic Writers </h2>
       More frequent in the science blogosphere journalistic blogs focus on communicating research to a wider audience.
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "journalism")
+	#for $feed in $qf.get().filter("type =", "journalism").order("title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -67,7 +67,7 @@ $menu
       <h2> Communities </h2>
       Communities are a rich source for online discussions so we wouldn't want to miss them here.
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "community")
+	#for $feed in $qf.get().filter("type =", "community").order("title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -86,7 +86,7 @@ $menu
       <h2> Institutions </h2>
       Some institutions have interesting feeds, too.
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "institution")
+	#for $feed in $qf.get().filter("type =", "institution").order("title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -105,7 +105,7 @@ $menu
       <h2> Microblogging </h2>
       Not yet taking off but mathematical microblogging is here to stay.
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "micro")
+	#for $feed in $qf.get().filter("type =", "micro").order("title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
