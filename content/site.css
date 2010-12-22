@@ -1,13 +1,14 @@
 body {
     font-family: Calibri, Arial, Helvetica, Verdana, "Bitstream Vera Sans", sans-serif;
     height: 600px;
-    background: #FFFFFF; 
-    background-repeat: no-repeat; 
+    background: #FFFFFF;
+    background-repeat: repeat-x;
+    background-image: url("/content/background.png");
     background-image: -webkit-gradient(linear,left top, 0 330, color-stop(0, #444444), color-stop(0.45, #AAAAAA), color-stop(1, #FFFFFF));
     background-image: -moz-linear-gradient(center top , #444444 0%, #AAAAAA 150px, #FFFFFF 330px);
 }
 
-body, li, ul, a, h1 {
+body, li, ul, a, h1, img {
     padding: 0;
     margin: 0;
     border: 0;
