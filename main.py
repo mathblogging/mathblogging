@@ -201,6 +201,10 @@ class QueryFactory:
   def get(self):
       return Feed.all()
 
+class GqlQueryFactory:
+  def get(self, string):
+      return db.GqlQuery(string)
+
 class StartPage(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
@@ -221,7 +225,7 @@ class FeedsPage(webapp.RequestHandler):
 
 class TypeView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))

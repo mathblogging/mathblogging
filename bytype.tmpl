@@ -27,7 +27,7 @@ $menu
       <h2> Individual Researchers </h2>
       The majority of mathematical blogs are run by individual researchers mixing research and personal interests.
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "students")
+	#for $feed in $gqf.get("SELECT * FROM Feed WHERE type IN ('highpro','students')")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
