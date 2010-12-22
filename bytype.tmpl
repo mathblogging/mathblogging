@@ -1,10 +1,10 @@
-<html>
+$header
 
 $menu
 
 <div class="content">
 
-<p> There are many different kinds of blogs and newsfeeds around. We tried to structure them a litte.</a></p>
+<p> There are many different kinds of blogs and newsfeeds around. We tried to structure them a little.</p>
 
       <h2> Group Blogs </h2>
       Group blogs tend to be more research focused and less personal but are often more frequently updated and usually have more frequent discussions.
@@ -14,11 +14,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
               #end for
 	    </ul>
+            #end if
 	  </div>
 	</li>
         #end for
@@ -31,11 +33,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
               #end for
 	    </ul>
+            #end if
 	  </div>
 	</li>
         #end for
@@ -48,11 +52,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
               #end for
 	    </ul>
+            #end if
 	  </div>
 	</li>
         #end for
@@ -65,11 +71,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
               #end for
 	    </ul>
+            #end if
 	  </div>
 	</li>
         #end for
@@ -82,11 +90,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
               #end for
 	    </ul>
+            #end if
 	  </div>
 	</li>
         #end for
@@ -99,11 +109,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link"><%=entry.title%></a></li>
               #end for
 	    </ul>
+            #end if
 	  </div>
 	</li>
         #end for

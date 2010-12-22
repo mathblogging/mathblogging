@@ -256,7 +256,7 @@ div#menu ul ul ul li:hover ul
 }
 
 #postsbydate tbody div {
-    height: 1.4em;
+    height: 1.2em;
     overflow: hidden;
 }
 
@@ -268,6 +268,7 @@ div#menu ul ul ul li:hover ul
 
 #postbydate tbody .postcolumn {
     text-align: left;
+    width: 50ex;
 }
 
 #postsbydate a {

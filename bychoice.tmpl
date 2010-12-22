@@ -1,4 +1,4 @@
-<html>
+$header
 
 $menu
 
@@ -13,11 +13,13 @@ $menu
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
+            #if len(feed.entries()) != 0
 	    <ul>
               #for $entry in feed.entries()
 	      <li><a href="$entry.link"><%=entry.title%></a></li>
               #end for
 	    </ul>
+	    #end if
 	  </div>
 	</li>
         #end for

@@ -38,7 +38,7 @@ from google.appengine.api.labs import taskqueue
 # Escape HTML entities.
 html_escape_table = {
     "&": "&amp;",
-#    '"': "&quot;",
+    '"': "&quot;",
 #    "'": "&apos;",
     ">": "&gt;",
     "<": "&lt;",
@@ -49,14 +49,19 @@ def html_escape(text):
     return "".join(html_escape_table.get(c,c) for c in text)
 # end
 
-menu = """
+header = """
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <link rel="stylesheet" type="text/css" href="/content/site.css">
+    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/content/site.css"/>
     <title>Mathblogging v0.01alpha</title>
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging <small style="color: #CCC">v0.01alpha</small></a></h1>
+"""
 
+menu = """
 <!-- Top Navigation -->
 <div id="menu">
 <ul>
@@ -98,7 +103,7 @@ disqus = """
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></p></noscript>
 <a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
 </div>
 <!-- end disqus code-->
@@ -107,9 +112,11 @@ disqus = """
 footer = """
 <!-- copyright footer -->
 <div class="footer">
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png" /></a>
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
+  <img alt="Creative Commons License" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png"/>
+</a>
 <p>
-<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">mathblogging.org</span> is licensed under a <br /> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
+mathblogging.org is licensed under a <br/> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
 </p>
 </div>
 <!-- end copyright footer -->
@@ -207,32 +214,32 @@ class GqlQueryFactory:
 
 class StartPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'start.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class AboutPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'about.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class FeedsPage(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'feeds.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class TypeView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
         
 class ChoiceView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -241,7 +248,7 @@ class DateView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:1000], 'menu': menu, 'footer': footer, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:1000], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -250,7 +257,7 @@ class FeedHandler1(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -259,7 +266,7 @@ class FeedHandler2(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'disqus': disqus }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
