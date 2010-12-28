@@ -1,0 +1,7 @@
+h1. Mathblogging
+
+Mathblogging is a blog aggregator for the Google App Engine. It was written to run http://www.mathblogging.org and is licensed under the AGPLv3.
+
+Mathblogging was written by Felix Breuer, Frederik von Heymann and Peter Krautzberger. It uses the Feedparser and Cheetah libraries and runs on the Google App Engine.
+
+
