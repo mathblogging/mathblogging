@@ -55,10 +55,10 @@ header = """
   <head>
     <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" href="/content/site.css"/>
-    <title>Mathblogging v0.01alpha</title>
+    <title>Mathblogging.org</title>
   </head>
   <body>
-    <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging <small style="color: #CCC">v0.01alpha</small></a></h1>
+    <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
 """
 
 menu = """
