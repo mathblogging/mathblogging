@@ -29,7 +29,7 @@ $menu
       <h2> Individual Researchers </h2>
       The majority of mathematical blogs are run by individual researchers mixing research and personal interests.
       <ul class="feedbox-list">
-	#for $feed in $gqf.get("SELECT * FROM Feed WHERE type IN ('highpro','students','slow','deep') ORDER BY title")
+	#for $feed in $gqf.get("SELECT * FROM Feed WHERE type IN ('highpro','students','slow','deep','person','beyond') ORDER BY title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
