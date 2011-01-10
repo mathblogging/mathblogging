@@ -166,6 +166,7 @@ class Feed(db.Model):
                 x.service = html_escape(self.title)
                 x.title = html_escape(entry['title'])
                 x.link = html_escape(entry['link'])
+                x.length = len( self.content )
                 x.homepage = self.homepage
                 try:
                     x.timestamp = entry.updated_parsed
