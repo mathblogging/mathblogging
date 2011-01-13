@@ -166,7 +166,7 @@ class Feed(db.Model):
                 x.service = html_escape(self.title)
                 x.title = html_escape(entry['title'])
                 x.link = html_escape(entry['link'])
-                x.length = len( self.content )
+                #x.length = len( self.content )
                 x.homepage = self.homepage
                 try:
                     x.timestamp = entry.updated_parsed
@@ -243,7 +243,7 @@ class TypeView(webapp.RequestHandler):
         
 class ChoiceView(webapp.RequestHandler):
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
