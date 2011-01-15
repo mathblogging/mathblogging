@@ -122,6 +122,11 @@ mathblogging.org is licensed under a <br/> <a rel="license" href="http://creativ
 <!-- end copyright footer -->
 """
 
+def get_feedparser_entry_content(entry):
+    try:
+        return " ".join([content.value for content in entry.content])
+    except AttributeException:
+        return ""
 
 class Feed(db.Model):
     url = db.LinkProperty()
@@ -166,7 +171,7 @@ class Feed(db.Model):
                 x.service = html_escape(self.title)
                 x.title = html_escape(entry['title'])
                 x.link = html_escape(entry['link'])
-                #x.length = len( self.content )
+                x.length = len( get_feedparser_entry_content(entry) )
                 x.homepage = self.homepage
                 try:
                     x.timestamp = entry.updated_parsed
@@ -180,12 +185,13 @@ class Feed(db.Model):
         return {'title': self.title, 'entries': self.top_entries() }
       
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None):
+    def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
         self.title = title
         self.link = link
         self.homepage = homepage
         self.service = service
         self.timestamp = timestamp
+        self.length = length
     def printTime(self):
         try:
             res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
