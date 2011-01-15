@@ -13,12 +13,12 @@ indexes:
 - kind: Feed
   properties:
   - name: type
-  - name: title
+  - name: priority
 
 - kind: Feed
   properties:
   - name: type
-  - name: priority
+  - name: title
 
 - kind: Feed
   properties:

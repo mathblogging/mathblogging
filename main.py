@@ -291,6 +291,7 @@ class FetchWorker(webapp.RequestHandler):
             if feed:
                 feed.restore_cache()
         self.response.set_status(200)
+        logging.info("FetchWorker done: " + url)
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
