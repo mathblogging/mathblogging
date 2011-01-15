@@ -9,7 +9,7 @@ $menu
 
       <h2> Our Favorites </h2>
       <ul class="feedbox-list">
-	#for $feed in $gqf.get("""SELECT * FROM Feed WHERE title IN ('What's new (with Terry Tao)','The Unapologetic Mathematician','Division by Zero','Good Math, Bad Math','The Endeavour','Mathlog', 'Shtetl-Optimized', 'The Language of Bad Physics', 'Libres pensées d'un mathématicien ordinaire','Freakonometrics','Gowers's weblog','Mathematics Rising','Combinatorics and More') ORDER BY title""")
+	#for $feed in $gqf.get("SELECT * FROM Feed WHERE title IN ('What''s new (with Terry Tao)','The Unapologetic Mathematician','Division by Zero','Good Math, Bad Math','The Endeavour','Mathlog', 'Shtetl-Optimized', 'The Language of Bad Physics','Freakonometrics','Gowers''s weblog','Mathematics Rising','Combinatorics and More') ORDER BY title")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
