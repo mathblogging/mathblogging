@@ -125,7 +125,7 @@ mathblogging.org is licensed under a <br/> <a rel="license" href="http://creativ
 def get_feedparser_entry_content(entry):
     try:
         return " ".join([content.value for content in entry.content])
-    except AttributeException:
+    except AttributeError:
         return ""
 
 class Feed(db.Model):
@@ -162,22 +162,29 @@ class Feed(db.Model):
         except urlfetch.ResponseTooLargeError:
             logging.warning("Downloading URL " + self.url + "failed: response tooo large.")
             return []
-        logging.info("Fetched URL " + self.url)
         updates = []
         if result.status_code == 200:
-            feed = feedparser.parse(result.content)
-            for entry in feed['entries']:
-                x = Entry()
-                x.service = html_escape(self.title)
-                x.title = html_escape(entry['title'])
-                x.link = html_escape(entry['link'])
-                x.length = len( get_feedparser_entry_content(entry) )
-                x.homepage = self.homepage
-                try:
-                    x.timestamp = entry.updated_parsed
-                except AttributeError:
-                    x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                updates.append(x)
+            logging.info("Successfully fetched URL " + self.url)
+            try:
+                feed = feedparser.parse(result.content)
+                for entry in feed['entries']:
+                    try:
+                        x = Entry()
+                        x.service = html_escape(self.title)
+                        x.title = html_escape(entry['title'])
+                        x.link = html_escape(entry['link'])
+                        x.length = len( get_feedparser_entry_content(entry) )
+                        x.homepage = self.homepage
+                        try:
+                            x.timestamp = entry.updated_parsed
+                        except AttributeError:
+                            x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                        updates.append(x)
+                    except Exception, e:
+                        logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
+            except LookupError, e:
+                logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
+                    
         return updates          
     def top_entries(self):
         return self.entries()[0:10]
@@ -307,8 +314,14 @@ class FetchAllSyncWorker(webapp.RequestHandler):
         for feed in Feed.all():
             feed.restore_cache()
         self.response.set_status(200)
-        
 
+class RebootCommand(webapp.RequestHandler):
+    def get(self):
+        logging.info("Reboot")
+        memcache.flush_all()
+        taskqueue.add(url="/fetchall")
+        self.response.set_status(200)
+        
 class InitDatabase(webapp.RequestHandler):
     def get(self):
         if Feed.all().count() == 0:
@@ -337,6 +350,7 @@ def main():
                                         ('/fetchallsync', FetchAllSyncWorker),
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
+                                        ('/reboot', RebootCommand),
                                         ('/init', InitDatabase),
                                         ('/feed_big', FeedHandler2),
                                         ('/feed_small', FeedHandler1)],
