@@ -265,7 +265,7 @@ class DateView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:250], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -274,7 +274,7 @@ class FeedHandler1(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:250], 'menu': menu, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -283,7 +283,7 @@ class FeedHandler2(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:250], 'menu': menu, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
