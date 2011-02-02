@@ -138,6 +138,10 @@ input.gsc-search-button {
   border: 1px solid;
   border-color: #336699;
 }
+.gsc-thinWrapper {
+  width: 100%;
+  overflow: visible;
+}
 /* Promotion image */
 .cse .gs-promotion.gs-result .gs-promotion-image,
 .gs-promotion.gs-result .gs-promotion-image {}

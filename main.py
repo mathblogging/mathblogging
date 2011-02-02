@@ -130,6 +130,12 @@ def strip_http(str):
     else:
       return str
 
+def add_slash(str):
+    if str.find("/") == -1:
+      return str+"/"
+    else:
+      return str
+
 def get_feedparser_entry_content(entry):
     try:
         return " ".join([content.value for content in entry.content])
@@ -194,8 +200,8 @@ class Feed(db.Model):
                 logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
                     
         return updates
-    def stripped_homepage(self):
-        return strip_http(self.homepage)
+    def cse_homepage(self):
+        return add_slash(strip_http(self.homepage))
     def top_entries(self):
         return self.entries()[0:10]
     def template_top(self):
