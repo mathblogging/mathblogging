@@ -1,7 +1,12 @@
 /* Slight reset to make the preview have ample padding. */
 .cse .gsc-control-cse,
 .gsc-control-cse {
-  padding: 2%;
+  background: transparent;
+  border: 0px;
+  text-align: center;
+  max-width: 800px;
+  margin: auto;
+  padding: 50px 30px 30px 30px;
   width: 96%;
 }
 .cse .gsc-branding,
@@ -13,14 +18,14 @@
   position: normal;
 }
 /* Selector for entire element. */
-.cse .gsc-control-cse,
+/*.cse .gsc-control-cse,
 .gsc-control-cse {
   background-color: #ffffff;
   border: 1px solid black;
   border-color: #ffffff;
   box-shadow: 4px 4px 7px black;
   -webkit-box-shadow: 4px 4px 7px black;
-}
+}*/
 .cse .gsc-control-cse:after,
 .gsc-control-cse:after {
   content:".";
@@ -29,9 +34,44 @@
   clear:both;
   visibility:hidden;
 }
+.gsc-wrapper .gsc-adBlock, .gsc-wrapper .gsc-resultsbox-visible {
+  margin-top: 20px;
+  background: white;
+  border: 1px solid black;
+  border-color: #000000;
+  box-shadow: 4px 4px 7px black;
+  -webkit-box-shadow: 4px 4px 7px black;
+  text-align: justify;
+  padding: 10px;
+}
+.cse .gsc-adBlock {
+  float: right;
+  background: transparent;
+  border: 0px;
+}
+.cse a.gs-title {
+  padding: 0;
+  font-weight: bold;
+}
 .cse .gsc-resultsHeader,
 .gsc-resultsHeader {
   border: block;
+}
+.cse form.gsc-search-box, form.gsc-search-box {
+    background: transparent;
+}
+.cse .gsc-results .gsc-cursor-page.gsc-cursor-current-page, .gsc-results .gsc-cursor-page.gsc-cursor-current-page {
+    background-color: #888888;
+    border: 1px solid #DDDDDD;
+    color: #000000;
+    text-shadow: 0 1px 2px #FFFFFF;
+}
+form.gsc-search-box {
+  width: 400px !important;
+  margin: auto;
+}
+.cse .gsc-input {
+  width: 400px;
 }
 /* Search button */
 .cse input.gsc-search-button,
@@ -86,6 +126,10 @@ input.gsc-search-button {
   border: 1px solid;
   border-color: #FFFFFF;
 }
+.gs-result a.gs-visibleUrl, .gs-result .gs-visibleUrl {
+    color: #808080;
+    text-decoration: none;
+}
 /*Promotion Settings*/
 /* The entire promo */
 .cse .gs-promotion.gs-result,
@@ -98,21 +142,37 @@ input.gsc-search-button {
 .cse .gs-promotion.gs-result .gs-promotion-image,
 .gs-promotion.gs-result .gs-promotion-image {}
 /* Promotion title */
+.cse .gs-result a.gs-title,
+.gs-result a.gs-title {
+  color: #000000 !important;
+  padding: 0;
+  font-weight: bold;
+}
+.ad .titleLink {
+  color: #000000 !important;
+}
+.ad .domainLink {
+  color: #000000 !important;
+}
+.cse .gs-promotion.gs-result a.gs-title,
+.gs-promotion.gs-result a.gs-title {
+  color: #000000 !important;
+}
 .cse .gs-promotion.gs-result a.gs-title:link,
 .gs-promotion.gs-result a.gs-title:link {
-  color: #0000CC;
+  color: #000000;
 }
 .cse .gs-promotion.gs-result a.gs-title:visited,
 .gs-promotion.gs-result a.gs-title:visited {
-  color: #0000CC;
+  color: #000000;
 }
 .cse .gs-promotion.gs-result a.gs-title:hover,
 .gs-promotion.gs-result a.gs-title:hover {
-  color: #0000CC;
+  color: #000000;
 }
 .cse .gs-promotion.gs-result a.gs-title:active,
 .gs-promotion.gs-result a.gs-title:active {
-  color: #0000CC;
+  color: #000000;
 }
 /* Promotion snippet */
 .cse .gs-promotion.gs-result .gs-snippet,
