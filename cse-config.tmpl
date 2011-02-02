@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<Annotations>
+   #for $feed in $qf.get()
+     #if feed.homepage != ""
+       <Annotation about="<%=feed.stripped_homepage()%>*">
+         <Label name="_cse_et7bffbfveg"/>
+       </Annotation>
+     #end if
+   #end for
+</Annotations>   

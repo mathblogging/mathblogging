@@ -124,6 +124,12 @@ mathblogging.org is licensed under a <br/> <a rel="license" href="http://creativ
 <!-- end copyright footer -->
 """
 
+def strip_http(str):
+    if str[0:7] == "http://":
+      return str[7:]
+    else:
+      return str
+
 def get_feedparser_entry_content(entry):
     try:
         return " ".join([content.value for content in entry.content])
@@ -187,7 +193,9 @@ class Feed(db.Model):
             except LookupError, e:
                 logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
                     
-        return updates          
+        return updates
+    def stripped_homepage(self):
+        return strip_http(self.homepage)
     def top_entries(self):
         return self.entries()[0:10]
     def template_top(self):
@@ -281,6 +289,15 @@ class SearchView(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'search.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
+class CSEConfig(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+    
+        path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 class FeedHandler1(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
@@ -359,6 +376,7 @@ def main():
                                         ('/bychoice', ChoiceView),
                                         ('/bydate', DateView),
                                         ('/search', SearchView),
+                                        ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
