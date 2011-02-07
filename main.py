@@ -78,7 +78,7 @@ menu = """
   </li>
   <li><h2><a href="/about" title="About">About</a></h2>
   </li>
-  <li><h2><a href="/search" title="Search">Search</a></h2>
+  <li><h2><a href="/" title="Search">Search</a></h2>
   </li>
 </ul>						
 </div>
