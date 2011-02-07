@@ -32,18 +32,24 @@ a {
     <td align="center"><a href="/bychoice"><img src="/content/favorites-128.png" alt="View our favorites"/></a><br/><b>View our Favorites</b></td>
 </tr></tbody></table>
 
-<div style="margin:auto;">
-<div id="cse">Loading</div>
+<div style="margin:20px;">
+
+<div id="cse-search-form" style="width: 100%;">Loading</div>
 <script src="http://www.google.com/jsapi" type="text/javascript"></script>
 <script type="text/javascript">
   google.load('search', '1', {language : 'en', style : google.loader.themes.SHINY});
   google.setOnLoadCallback(function() {
     var customSearchControl = new google.search.CustomSearchControl('011837388000883284523:et7bffbfveg');
     customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
-    customSearchControl.draw('cse');
+    var options = new google.search.DrawOptions();
+    options.setSearchFormRoot('cse-search-form');
+    customSearchControl.draw('cse', options);
   }, true);
 </script>
-<link rel="stylesheet" href="/content/cse-frontpage.css" type="text/css" /> 
+
+<div id="cse" style="width:100%;"></div>
+
+<link rel="stylesheet" href="/content/cse-frontpage-2.css" type="text/css" />
 </div>
 
 <table style="margin:auto; width: 450px; padding-top:10px;" border="0" cellpadding="0" cellspacing="0">
