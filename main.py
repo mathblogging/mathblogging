@@ -55,6 +55,8 @@ header = """
   <head>
     <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" href="/content/site.css"/>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
   </head>
   <body>

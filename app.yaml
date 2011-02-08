@@ -10,5 +10,8 @@ handlers:
 - url: /content/(.*)
   static_files: content/\1
   upload: content/(.*)
+- url: /favicon.ico
+  static_files: content/favicon.ico
+  upload: content/favicon.ico
 - url: .*
   script: main.py
