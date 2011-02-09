@@ -234,6 +234,50 @@ div#menu ul ul ul li:hover ul
 /* ------------ End Feedboxes --------------- */
 
 
+/* ------------ Begin tocboxes --------------- */
+/* For toc in bytype.tmpl (and future uses) */
+/*.tocbox {
+    float: left;
+    box-shadow: 4px 4px 7px black;
+    -webkit-box-shadow: 4px 4px 7px black;
+    border: 2px dotted gray;
+    padding: 0px;
+    margin: 0px;
+    width: 301px;
+    padding: 9px 9px 9px 9px;
+}
+
+.tocbox > ul {
+    float: left;
+    border: disc inside none;
+    
+}*/
+
+.tocbox {
+list-style-type:none;
+margin:10px;
+padding-bottom:5ex;
+width:900px;
+}
+.tocbox li a
+{
+float:left;
+display:block;
+font-size:small;
+font-weight:bold;
+color:#FFFFFF;
+background-color:gray;
+text-align:center;
+padding:8px;
+text-decoration:none;
+}
+.tocbox a:hover
+{
+background-color:black;
+}
+/* ------------ End tocboxes --------------- */
+
+
 
 /* ------------ Begin Date View Table --------------- */
 
