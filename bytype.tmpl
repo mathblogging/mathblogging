@@ -4,8 +4,6 @@ $menu
 
 <div class="content">
 
-<p> There are many different kinds of blogs and newsfeeds around. We tried to structure them a little.</p>
-
 <div class="tocbox"> 
 <ul>
 <li> <a href="#GroupBlogs"> Group Blogs</a> </li>
@@ -20,8 +18,7 @@ $menu
 
 
       <h2 id="GroupBlogs"> Group Blogs <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      Group blogs tend to be more research focused and less personal but are often more frequently updated and usually have more frequent discussions.
-
+      
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "groups").order("title")
 	<li>
@@ -40,7 +37,6 @@ $menu
       </ul>
 
       <h2 id="IndividualResearchers"> Individual Researchers <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      The majority of mathematical blogs are run by individual researchers mixing research and personal interests.
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "research").order("title")
 	<li>
@@ -59,7 +55,6 @@ $menu
       </ul>
 
       <h2 id="TeachersAndEducators"> Teachers and Educators <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      The teachers of mathematics on all levels form a large part of the mathematical blogosphere, unfortunately largely disjoint from the research blogs.
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "educator").order("title")
 	<li>
@@ -78,7 +73,6 @@ $menu
       </ul>
 
       <h2 id="JournlisticWriters"> Journalistic Writers <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      More frequent in the science blogosphere journalistic blogs focus on communicating research to a wider audience.
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "journalism").order("title")
 	<li>
@@ -97,7 +91,6 @@ $menu
       </ul>
 
       <h2 id="Communities"> Communities <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      Communities are a rich source for online discussions so we wouldn't want to miss them here.
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "community").order("title")
 	<li>
@@ -116,7 +109,6 @@ $menu
       </ul>
 
       <h2 id="Institutions"> Institutions <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      Some institutions have interesting feeds, too.
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "institution").order("title")
 	<li>
@@ -135,7 +127,6 @@ $menu
       </ul>
 
       <h2 id="Microblogging"> Microblogging <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      Not yet taking off but mathematical microblogging is here to stay.
       <ul class="feedbox-list">
 	#for $feed in $qf.get().filter("type =", "micro").order("title")
 	<li>

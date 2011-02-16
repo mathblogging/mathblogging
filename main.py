@@ -67,18 +67,15 @@ menu = """
 <!-- Top Navigation -->
 <div id="menu">
 <ul>
-  <li><h2>Views</h2>
-    <ul>
-      <li><a href="/bydate" title="Latest Posts">Latest Posts</a></li>
-      <li><a href="/bytype" title="By Category">By Category</a></li>
-      <li><a href="/bychoice" title="Our Favorites">Our Favorites</a></li>
-    </ul>
+  <li><h2><a href="/bydate" title="Latest Posts">Latest Posts</a></h2>
   </li>
-</ul>
-<ul>
+  <li><h2><a href="/bytype" title="Blogs by Category">Blogs by Category</a></h2>
+  </li>
+  <li><h2><a href="/bychoice" title="Our Favorites">Our Favorites</a></h2>
+  </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
   </li>
-  <li><h2><a href="/about" title="About">About</a></h2>
+  <li><h2><a href="https://mathblogging.wordpress.com/" title="Developer Blog">Blog</a></h2>
   </li>
   <li><h2><a href="/" title="Search">Search</a></h2>
   </li>
