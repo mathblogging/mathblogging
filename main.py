@@ -147,7 +147,7 @@ class Feed(db.Model):
     title = db.StringProperty()
     person = db.StringProperty()
     subject = db.StringListProperty()
-    type = db.StringProperty() # can be 'groups', 'highpro', 'deep', 'students', 'micro', 'mathblogging'
+    type = db.StringProperty() # can be 'groups', 'research', 'educator', 'micro', 'mathblogging'
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
     comments = db.StringProperty()
@@ -156,6 +156,9 @@ class Feed(db.Model):
         #try: 
         updates = self.fetch_entries()
         memcache.set(self.url,updates,86400) # 1 day 
+        # memcache element for comment feeds. fetch_comments_entries accumulates the list, self.comments is the database object to call up later
+        comments_updates = self.fetch_comments_entries()
+        memcache.set(self.comments,comments_updates,86400) # 1 day 
         #except:
             #logging.info("There was a problem downloading " + self.url)
             #pass
@@ -205,6 +208,48 @@ class Feed(db.Model):
         return self.entries()[0:10]
     def template_top(self):
         return {'title': self.title, 'entries': self.top_entries() }
+    # comments_entries the abstract construct
+    def comments_entries(self,num=None):
+        if not memcache.get(self.comments):
+            return [] # TODO: schedule a fetch-task !
+        if num == None:
+            return memcache.get(self.comments)
+        result = memcache.get(self.comments)
+        return result[0:num]
+    # fetching entries from comment feeds (just like regular feed)
+    def fetch_comments_entries(self):
+        try:
+            result = urlfetch.fetch(self.comments,deadline=10) # 10 is max deadline
+        except urlfetch.DownloadError:
+            logging.warning("Downloading URL " + self.comments + "failed: timeout.")
+            return []
+        except urlfetch.ResponseTooLargeError:
+            logging.warning("Downloading URL " + self.comments + "failed: response tooo large.")
+            return []
+        comments_updates = []
+        if result.status_code == 200:
+            logging.info("Successfully fetched URL " + self.comments)
+            try:
+                feed = feedparser.parse(result.content)
+                for entry in feed['entries']:
+                    try:
+                        x = Entry()
+                        x.service = html_escape(self.title)
+                        x.title = html_escape(entry['title'])
+                        x.link = html_escape(entry['link'])
+                        x.length = len( get_feedparser_entry_content(entry) )
+                        x.homepage = self.homepage
+                        try:
+                            x.timestamp = entry.updated_parsed
+                        except AttributeError:
+                            x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                        comments_updates.append(x)
+                    except Exception, e:
+                        logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
+            except LookupError, e:
+                logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
+                    
+        return comments_updates
       
 class Entry:
     def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
@@ -339,6 +384,7 @@ class FetchAllWorker(webapp.RequestHandler):
         for feed in Feed.all():
             logging.info("Adding fetch task for feed " + feed.title)
             taskqueue.add(url="/fetch", params={'url': feed.url})
+            taskqueue.add(url="/fetch", params={'url': feed.comments})
         self.response.set_status(200)
  
 class FetchAllSyncWorker(webapp.RequestHandler):
