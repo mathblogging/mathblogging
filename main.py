@@ -242,7 +242,8 @@ class Feed(db.Model):
                         try:
                             x.timestamp = entry.updated_parsed
                         except AttributeError:
-                            x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            x.timestamp = time.gmtime(0)
                         comments_updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
@@ -251,6 +252,19 @@ class Feed(db.Model):
                     
         return comments_updates
       
+    #Function to calculate the number of comments last 24h   (conversion into seconds)
+    def comments_day(self):
+        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 86400 ])
+    #Function to calculate the number of comments last 7 days (conversion into seconds)
+    def comments_week(self):
+        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
+    #Function to calculate the number of posts last 30 days (conversion into seconds)
+    def posts_month(self):
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 259200 ])
+    #Function to calculate the number of posts last 7 days (conversion into seconds)
+    def posts_week(self):
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
+
 class Entry:
     def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
         self.title = title
@@ -319,6 +333,22 @@ class ChoiceView(webapp.RequestHandler):
         template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+# testing
+class RankingView(webapp.RequestHandler):
+    def get(self):
+        feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
+        feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
+        feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all() if feed.posts_week() != 0]
+        feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all() if feed.posts_month() != 0]
+        feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
+        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+    
+        path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateView(webapp.RequestHandler):
@@ -426,6 +456,8 @@ def main():
                                         ('/bytype', TypeView),
                                         ('/bychoice', ChoiceView),
                                         ('/bydate', DateView),
+                                        #testing 
+                                        ('/byranking', RankingView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),
