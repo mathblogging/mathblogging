@@ -260,7 +260,7 @@ class Feed(db.Model):
         return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
     #Function to calculate the number of posts last 30 days (conversion into seconds)
     def posts_month(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 259200 ])
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 2592000 ])
     #Function to calculate the number of posts last 7 days (conversion into seconds)
     def posts_week(self):
         return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
@@ -359,6 +359,14 @@ class DateView(webapp.RequestHandler):
     
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        
+class CsvView(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
+    
+        path = os.path.join(os.path.dirname(__file__), 'database.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 
 class SearchView(webapp.RequestHandler):
     def get(self):
@@ -458,6 +466,7 @@ def main():
                                         ('/bydate', DateView),
                                         #testing 
                                         ('/byranking', RankingView),
+                                        ('/database', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),

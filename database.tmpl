@@ -1,0 +1,4 @@
+title, homepage, person, type, url, comments, priority, subject, favicon
+#for $feed in $qf.get().order("type")
+    <%=feed.title%>, <%=feed.homepage%>, <%=feed.person%>, <%=feed.type%>,<%=feed.url%>, <%=feed.comments%>, <%=feed.priority%>, <%=feed.subject%>, <%=feed.favicon%>,
+#end for
