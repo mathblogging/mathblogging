@@ -12,7 +12,6 @@ $menu
 <li> <a href="#JournlisticWriters">Journalistic Writers</a> </li>
 <li> <a href="#Communities">Communities</a> </li> 
 <li> <a href="#Institutions">Institutions</a> </li> 
-<li>  <a href="#Microblogging">Microblogging</a> </li> 
 </ul>
 </div>
 
@@ -118,24 +117,6 @@ $menu
 	    <ul>
               #for $entry in feed.entries(7)
 	      <li><a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a></li>
-              #end for
-	    </ul>
-            #end if
-	  </div>
-	</li>
-        #end for
-      </ul>
-
-      <h2 id="Microblogging"> Microblogging <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
-      <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "micro").order("title")
-	<li>
-	  <div class="feedbox">
-            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
-            #if len(feed.entries()) != 0
-	    <ul>
-              #for $entry in feed.entries(7)
-	      <li><a href="$entry.link"><%=entry.title%></a></li>
               #end for
 	    </ul>
             #end if
