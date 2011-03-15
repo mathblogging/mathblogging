@@ -48,6 +48,41 @@ a {
     customSearchControl.draw('cse', options);
   }, true);
 </script>
+<div id="cse-search-form" style="width: 100%;">
+<script src="http://widgets.twimg.com/j/2/widget.js"></script>
+<script>
+new TWTR.Widget({
+  version: 2,
+  type: 'list',
+  rpp: 30,
+  interval: 6000,
+  title: '@mathblogging',
+  subject: 'math bloggers on twitter',
+  width: 400,
+  height: 50,
+  theme: {
+    shell: {
+      background: '#ffffff',
+      color: '#000000'
+    },
+    tweets: {
+      background: '#ffffff',
+      color: '#000000',
+      links: '#878787'
+    }
+  },
+  features: {
+    scrollbar: true,
+    loop: false,
+    live: true,
+    hashtags: true,
+    timestamp: true,
+    avatars: true,
+    behavior: 'all'
+  }
+}).render().setList('mathblogging', 'math-bloggers').start();
+</script>
+</div>
 
 <div id="cse" style="width:100%;"></div>
 
