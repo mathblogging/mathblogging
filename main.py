@@ -365,6 +365,7 @@ class CsvView(webapp.RequestHandler):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'database.tmpl')
+        self.response.headers['Content-Type'] = 'text/csv'
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 
@@ -535,7 +536,7 @@ def main():
                                         ('/bydate', DateView),
                                         #testing 
                                         ('/byranking', RankingView),
-                                        ('/database', CsvView),
+                                        ('/database.csv', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),
