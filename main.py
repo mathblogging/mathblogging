@@ -445,7 +445,7 @@ class FeedHandlerInstitutions(webapp.RequestHandler):
 
 class FeedHandlerCommunities(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","communities") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type =","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -455,7 +455,7 @@ class FeedHandlerCommunities(webapp.RequestHandler):
 
 class FeedHandlerPeople(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =!","communities").filter("type =!","institutions") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institution") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -464,7 +464,7 @@ class FeedHandlerPeople(webapp.RequestHandler):
         
 class FeedHandlerAcademics(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =!","communities").filter("type =!","educator").filter("type =!","journalism") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
