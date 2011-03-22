@@ -254,16 +254,16 @@ class Feed(db.Model):
       
     #Function to calculate the number of comments last 24h   (conversion into seconds)
     def comments_day(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 86400 ])
+        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
     #Function to calculate the number of comments last 7 days (conversion into seconds)
     def comments_week(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
+        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
     #Function to calculate the number of posts last 30 days (conversion into seconds)
     def posts_month(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 2592000 ])
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
     #Function to calculate the number of posts last 7 days (conversion into seconds)
     def posts_week(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
     def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
@@ -279,6 +279,11 @@ class Entry:
         except TypeError:
             res = ""
         return res
+    def gettime(self):
+        if self.timestamp == None:
+            return time.gmtime(0)
+        else:
+            return self.timestamp
     def printShortTime(self):
         try:
             today = time.localtime()
