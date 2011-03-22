@@ -254,16 +254,16 @@ class Feed(db.Model):
       
     #Function to calculate the number of comments last 24h   (conversion into seconds)
     def comments_day(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 86400 ])
+        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
     #Function to calculate the number of comments last 7 days (conversion into seconds)
     def comments_week(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
+        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
     #Function to calculate the number of posts last 30 days (conversion into seconds)
     def posts_month(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 2592000 ])
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
     #Function to calculate the number of posts last 7 days (conversion into seconds)
     def posts_week(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.timestamp) <= 604800 ])
+        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
     def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
@@ -279,6 +279,11 @@ class Entry:
         except TypeError:
             res = ""
         return res
+    def gettime(self):
+        if self.timestamp == None:
+            return time.gmtime(0)
+        else:
+            return self.timestamp
     def printShortTime(self):
         try:
             today = time.localtime()
@@ -365,6 +370,7 @@ class CsvView(webapp.RequestHandler):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'database.tmpl')
+        self.response.headers['Content-Type'] = 'text/csv'
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 
@@ -535,7 +541,7 @@ def main():
                                         ('/bydate', DateView),
                                         #testing 
                                         ('/byranking', RankingView),
-                                        ('/database', CsvView),
+                                        ('/database.csv', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),
