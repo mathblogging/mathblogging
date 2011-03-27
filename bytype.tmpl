@@ -19,7 +19,7 @@ $menu
       <h2 id="GroupBlogs"> Group Blogs <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
       
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "groups").order("title")
+	#for $feed in $qf.get().filter("type =", "groups").order("listtitle")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -37,7 +37,7 @@ $menu
 
       <h2 id="IndividualResearchers"> Individual Researchers <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "research").order("title")
+	#for $feed in $qf.get().filter("type =", "research").order("listtitle")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -55,7 +55,7 @@ $menu
 
       <h2 id="TeachersAndEducators"> Teachers and Educators <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "educator").order("title")
+	#for $feed in $qf.get().filter("type =", "educator").order("listtitle")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -73,7 +73,7 @@ $menu
 
       <h2 id="JournlisticWriters"> Journalistic Writers <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "journalism").order("title")
+	#for $feed in $qf.get().filter("type =", "journalism").order("listtitle")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -91,7 +91,7 @@ $menu
 
       <h2 id="Communities"> Communities <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "community").order("title")
+	#for $feed in $qf.get().filter("type =", "community").order("listtitle")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
@@ -109,7 +109,7 @@ $menu
 
       <h2 id="Institutions"> Institutions <font size="-1"> <a href="#"> (Back to top) </a> </font> </h2>
       <ul class="feedbox-list">
-	#for $feed in $qf.get().filter("type =", "institution").order("title")
+	#for $feed in $qf.get().filter("type =", "institution").order("listtitle")
 	<li>
 	  <div class="feedbox">
             <h3> <a href="<%=feed.homepage%>"><%=feed.title%> </a> </h3>
