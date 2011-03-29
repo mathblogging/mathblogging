@@ -344,18 +344,23 @@ class ChoiceView(webapp.RequestHandler):
 # testing
 class RankingView(webapp.RequestHandler):
     def get(self):
-        feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
-        feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
-        feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all() if feed.posts_week() != 0]
-        feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all() if feed.posts_month() != 0]
-        feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
-        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        if not memcache.get("RankingView"):
+            feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
+            feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
+            feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
+            feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
+            feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all().filter("type !=","community") if feed.posts_week() != 0]
+            feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all().filter("type !=","community") if feed.posts_month() != 0]
+            feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
+            feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
+            template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+            
+            path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
+            renderedString = str(Template( file = path, searchList = (template_values,) ))
+            memcache.set("RankingView",renderedString,2700)
+
+        self.response.headers['Cache-Control'] = 'public; max-age=2700;'
+        self.response.out.write(memcache.get("RankingView"))
 
 class DateView(webapp.RequestHandler):
     def get(self):
