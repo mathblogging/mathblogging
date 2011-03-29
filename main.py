@@ -71,6 +71,8 @@ menu = """
   </li>
   <li><h2><a href="/bytype" title="Blogs by Category">Blogs by Category</a></h2>
   </li>
+  <li><h2><a href="/bystats" title="Blogs by Stats">Blogs by Stats</a></h2>
+  </li>
   <li><h2><a href="/bychoice" title="Our Favorites">Our Favorites</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
@@ -347,6 +349,7 @@ class ChoiceView(SimpleCheetahPage):
 
 # testing
 class RankingView(CachedPage):
+    cacheName = "RankingView"
     def generatePage(self):
         feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
         feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
@@ -519,6 +522,12 @@ class RebootCommand(webapp.RequestHandler):
         memcache.flush_all()
         taskqueue.add(url="/fetchall")
         self.response.set_status(200)
+
+class ClearPageCacheCommand(webapp.RequestHandler):
+    def get(self):
+        logging.info("Clear Page Cache")
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","ChoiceView","DateView","RankingView"])
+        self.response.set_status(200)
         
 class InitDatabase(webapp.RequestHandler):
     def get(self):
@@ -554,6 +563,7 @@ def main():
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/reboot', RebootCommand),
+                                        ('/clearpagecache', ClearPageCacheCommand),
                                         ('/init', InitDatabase),
                                         ('/feed_all', FeedHandlerAll),
                                         ('/feed_researcher', FeedHandlerResearcher),
