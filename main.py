@@ -541,7 +541,7 @@ def main():
                                         ('/bychoice', ChoiceView),
                                         ('/bydate', DateView),
                                         #testing 
-                                        ('/byranking', RankingView),
+                                        ('/bystats', RankingView),
                                         ('/database.csv', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
