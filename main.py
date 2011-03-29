@@ -145,6 +145,7 @@ class Feed(db.Model):
     url = db.LinkProperty()
     homepage = db.StringProperty()
     title = db.StringProperty()
+    listtitle = db.StringProperty()
     person = db.StringProperty()
     subject = db.StringListProperty()
     type = db.StringProperty() # can be 'groups', 'research', 'educator', 'micro', 'mathblogging'
