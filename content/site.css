@@ -326,3 +326,19 @@ background-color:black;
 }
 
 /* ------------ End Date View Table --------------- */
+
+/* ------------ Twitter ---------------- */
+
+.twitter {
+    margin: auto;
+    padding: 20pt;
+}
+
+.twtr-widget {
+    margin: auto;
+    width: 400px;
+}
+
+.twtr-doc {
+    box-shadow: 2px 2px 4px #000000;
+}
