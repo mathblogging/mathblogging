@@ -342,3 +342,14 @@ background-color:black;
 .twtr-doc {
     box-shadow: 2px 2px 4px #000000;
 }
+
+/* ------------- By ranking ---------------- */
+
+.rankingcolumn {
+    float: left;
+    margin: 1ex !important;
+}
+
+.rankingcolumn .datecolumn{
+    width: 3ex !important;
+}

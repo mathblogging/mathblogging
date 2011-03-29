@@ -4,16 +4,13 @@ $menu
 
 <div class="content">
 
-<h2> Comments in the last 24h </h2>
-
-<table id="postsbydate">
+<table class="rankingcolumn" id="postsbydate">
   <thead>
   <tr>
     <th align="left" class="datecolumn">
-      Comments
     </th>
     <th align="left" class="blogcolumn">
-      Blog
+      Comments last 24h
     </th>
   </tr>
   </thead>
@@ -22,7 +19,7 @@ $menu
   <tr>
     <td valign="bottom" class="datecolumn">
       <div>
-      <%=feed[1]%> </a> </h3>
+      <%=feed[1]%>
       </div>
     </td>
     <td valign="bottom" class="blogcolumn">
@@ -35,16 +32,13 @@ $menu
   </tbody>
 </table>
 
-<h2> Comments in the last week </h2>
-
-<table id="postsbydate">
+<table class="rankingcolumn" id="postsbydate">
   <thead>
   <tr>
     <th align="left" class="datecolumn">
-      Comments
     </th>
     <th align="left" class="blogcolumn">
-      Blog
+      Comments last week
     </th>
   </tr>
   </thead>
@@ -53,7 +47,7 @@ $menu
   <tr>
     <td valign="bottom" class="datecolumn">
       <div>
-      <%=feed[1]%> </a> </h3>
+      <%=feed[1]%>
       </div>
     </td>
     <td valign="bottom" class="blogcolumn">
@@ -67,16 +61,13 @@ $menu
 </table>
 
 
-<h2> Posts in the last week </h2>
-
-<table id="postsbydate">
+<table class="rankingcolumn" id="postsbydate">
   <thead>
   <tr>
     <th align="left" class="datecolumn">
-      Posts
     </th>
     <th align="left" class="blogcolumn">
-      Blog
+      Posts last week
     </th>
   </tr>
   </thead>
@@ -85,7 +76,7 @@ $menu
   <tr>
     <td valign="bottom" class="datecolumn">
       <div>
-      <%=feed[1]%> </a> </h3>
+      <%=feed[1]%>
       </div>
     </td>
     <td valign="bottom" class="blogcolumn">
@@ -98,16 +89,13 @@ $menu
   </tbody>
 </table>
 
-<h2> Posts in the last month </h2>
-
-<table id="postsbydate">
+<table class="rankingcolumn" id="postsbydate">
   <thead>
   <tr>
     <th align="left" class="datecolumn">
-      Posts
     </th>
     <th align="left" class="blogcolumn">
-      Blog
+      Posts last month
     </th>
   </tr>
   </thead>
@@ -116,7 +104,7 @@ $menu
   <tr>
     <td valign="bottom" class="datecolumn">
       <div>
-      <%=feed[1]%> </a> </h3>
+      <%=feed[1]%>
       </div>
     </td>
     <td valign="bottom" class="blogcolumn">
@@ -128,25 +116,6 @@ $menu
   #end for
   </tbody>
 </table>
-
-
-      <h2> Comments </h2>
-      <ul class="feedbox-list">
-	#for $feed in $gqf.get("SELECT * FROM Feed ORDER BY title")
-	<li>
-	  <div class="feedbox">
-            <h3> <a href="<%=feed.homepage%>"><%=feed.title%> [<%=feed.comments_day()%> comments today]</a> </h3>
-            #if len(feed.comments_entries()) != 0
-	    <ul>
-              #for $entry in feed.comments_entries(10)
-	      <li><a href="$entry.link"><%=entry.title%></a></li>
-              #end for
-	    </ul>
-	    #end if
-	  </div>
-	</li>
-        #end for
-      </ul>
 
 $disqus
 
