@@ -27,10 +27,11 @@ a {
   </head><body>
 <h1 style="text-align:center">Mathblogging.org <span style="font-size: 10pt; color: rgb(204, 204, 204);">your one-stop shop for mathematical blogs</span></h1>
 
-<table style="margin: auto; width: 594px;" border="0" cellpadding="0" cellspacing="0">
+<table style="margin: auto; width: 792px;" border="0" cellpadding="0" cellspacing="0">
 <tbody align="center"><tr align="center">
     <td align="center"><a href="/bydate" ><img src="/content/date-128.png" alt="View the latest posts"/></a><br/><b>View the Latest Posts</b></td>
     <td align="center"><a href="/bytype"><img src="/content/type-128.png" alt="View by type"/></a><br/><b>View by Category</b></td>
+    <td align="center"><a href="/bystats"><img src="/content/ranking-128.png" alt="View by stats"/></a><br/><b>View by Stats</b></td>
     <td align="center"><a href="/bychoice"><img src="/content/favorites-128.png" alt="View our favorites"/></a><br/><b>View our Favorites</b></td>
 </tr></tbody></table>
 
@@ -49,6 +50,24 @@ a {
   }, true);
 </script>
 <div id="cse-search-form" style="width: 100%;">
+</div>
+
+<div id="cse" style="width:100%;"></div>
+
+<link rel="stylesheet" href="/content/cse-frontpage-2.css" type="text/css" />
+</div>
+
+<table style="margin:auto; width: 450px; padding-top:10px;" border="0" cellpadding="0" cellspacing="0">
+<tbody align="center">
+<tr align="center">
+    <td align="center"><a href="https://mathblogging.wordpress.com/contact-us/"><img src="/content/mail-64.png" alt="A blog's not listed?"/></a><br/><span style="font-size:90%">A blog's not listed? <br/> Tell us!</span></td>
+    <td align="center"><a href="feeds"><img src="/content/rss-64.png" alt="Grab a feed"/></a><br/><span style="font-size:90%"> Visiting too often? <br/> Grab a feed! </span></td>
+    <td align="center"><a href="http://mathblogging.wordpress.com/about"><img src="/content/about-64.png" alt="More about us"/></a><br/><span style="font-size:90%;">More about us? <br/> Visit our blog.</span></td>
+</tr>
+</tbody>
+</table>
+
+<div class="twitter">
 <script src="http://widgets.twimg.com/j/2/widget.js"></script>
 <script>
 new TWTR.Widget({
@@ -59,7 +78,7 @@ new TWTR.Widget({
   title: '@mathblogging',
   subject: 'math bloggers on twitter',
   width: 400,
-  height: 50,
+  height: 400,
   theme: {
     shell: {
       background: '#ffffff',
@@ -83,21 +102,6 @@ new TWTR.Widget({
 }).render().setList('mathblogging', 'math-bloggers').start();
 </script>
 </div>
-
-<div id="cse" style="width:100%;"></div>
-
-<link rel="stylesheet" href="/content/cse-frontpage-2.css" type="text/css" />
-</div>
-
-<table style="margin:auto; width: 450px; padding-top:10px;" border="0" cellpadding="0" cellspacing="0">
-<tbody align="center">
-<tr align="center">
-    <td align="center"><a href="https://mathblogging.wordpress.com/contact-us/"><img src="/content/mail-64.png" alt="A blog's not listed?"/></a><br/><span style="font-size:90%">A blog's not listed? <br/> Tell us!</span></td>
-    <td align="center"><a href="feeds"><img src="/content/rss-64.png" alt="Grab a feed"/></a><br/><span style="font-size:90%"> Visiting too often? <br/> Grab a feed! </span></td>
-    <td align="center"><a href="http://mathblogging.wordpress.com/about"><img src="/content/about-64.png" alt="More about us"/></a><br/><span style="font-size:90%;">More about us? <br/> Visit our blog.</span></td>
-</tr>
-</tbody>
-</table>
 
 $footer
 

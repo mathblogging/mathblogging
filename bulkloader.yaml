@@ -60,6 +60,10 @@ transformers:
       external_name: title
       # Type: String Stats: 128 properties of this type in this kind.
 
+    - property: listtitle
+      external_name: listtitle
+      # Type: String Stats: 128 properties of this type in this kind.
+
     - property: type
       external_name: type
       # Type: String Stats: 128 properties of this type in this kind.

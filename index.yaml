@@ -13,6 +13,11 @@ indexes:
 - kind: Feed
   properties:
   - name: type
+  - name: listtitle
+
+- kind: Feed
+  properties:
+  - name: type
   - name: priority
 
 - kind: Feed
