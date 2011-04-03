@@ -13,5 +13,20 @@ handlers:
 - url: /favicon.ico
   static_files: content/favicon.ico
   upload: content/favicon.ico
+- url: /fetch
+  script: main.py
+  login: admin
+- url: /fetchall
+  script: main.py
+  login: admin
+- url: /fetchsync
+  script: main.py
+  login: admin
+- url: /clearpagecache
+  script: main.py
+  login: admin
+- url: /reboot
+  script: main.py
+  login: admin
 - url: .*
   script: main.py

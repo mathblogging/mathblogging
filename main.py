@@ -71,6 +71,8 @@ menu = """
   </li>
   <li><h2><a href="/bytype" title="Blogs by Category">Blogs by Category</a></h2>
   </li>
+  <li><h2><a href="/bystats" title="Blogs by Stats">Blogs by Stats</a></h2>
+  </li>
   <li><h2><a href="/bychoice" title="Our Favorites">Our Favorites</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
@@ -313,58 +315,59 @@ class GqlQueryFactory:
   def get(self, string):
       return db.GqlQuery(string)
 
-class StartPage(webapp.RequestHandler):
+class CachedPage(webapp.RequestHandler):
+    cacheName = "default"
+    cacheTime = 2700
     def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), 'start.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        if not memcache.get(self.cacheName):
+            memcache.set(self.cacheName,self.generatePage(),self.cacheTime)
+        #self.response.headers['Cache-Control'] = 'public; max-age=2700;'
+        self.response.out.write(memcache.get(self.cacheName))
 
-class AboutPage(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), 'about.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class FeedsPage(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), 'feeds.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class TypeView(webapp.RequestHandler):
-    def get(self):
+class SimpleCheetahPage(CachedPage):
+    templateName = "default.tmpl"
+    def generatePage(self):
         template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'bytype.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-        
-class ChoiceView(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'bychoice.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        path = os.path.join(os.path.dirname(__file__), self.templateName)
+        return str(Template( file = path, searchList = (template_values,) ))
+
+class StartPage(SimpleCheetahPage):
+    cacheName = "StartPage"
+    templateName = "start.tmpl"
+
+class AboutPage(SimpleCheetahPage):
+    cacheName = "AboutPage"
+    templateName = "about.tmpl"
+
+class FeedsPage(SimpleCheetahPage):
+    cacheName = "FeedsPage"
+    templateName = "feeds.tmpl"
+
+class TypeView(SimpleCheetahPage):
+    cacheName = "TypeView"
+    templateName = "bytype.tmpl"
+
+class ChoiceView(SimpleCheetahPage):
+    cacheName = "ChoiceView"
+    templateName = "bychoice.tmpl"
 
 # testing
-class RankingView(webapp.RequestHandler):
-    def get(self):
-        if not memcache.get("RankingView"):
-            feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
-            feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
-            feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
-            feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-            feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all().filter("type !=","community") if feed.posts_week() != 0]
-            feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all().filter("type !=","community") if feed.posts_month() != 0]
-            feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-            feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
-            template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+class RankingView(CachedPage):
+    cacheName = "RankingView"
+    def generatePage(self):
+        feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
+        feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
+        feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all().filter("type !=","community") if feed.posts_week() != 0]
+        feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all().filter("type !=","community") if feed.posts_month() != 0]
+        feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
+        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
             
-            path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
-            renderedString = str(Template( file = path, searchList = (template_values,) ))
-            memcache.set("RankingView",renderedString,2700)
-
-        self.response.headers['Cache-Control'] = 'public; max-age=2700;'
-        self.response.out.write(memcache.get("RankingView"))
+        path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
+        renderedString = str(Template( file = path, searchList = (template_values,) ))
+        return renderedString
 
 class DateView(webapp.RequestHandler):
     def get(self):
@@ -470,7 +473,7 @@ class FeedHandlerInstitutions(webapp.RequestHandler):
 
 class FeedHandlerCommunities(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","communities") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type =","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -480,7 +483,7 @@ class FeedHandlerCommunities(webapp.RequestHandler):
 
 class FeedHandlerPeople(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","communities").filter("type !=","institutions") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institutions") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -489,7 +492,7 @@ class FeedHandlerPeople(webapp.RequestHandler):
         
 class FeedHandlerAcademics(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","communities").filter("type !=","educator").filter("type !=","journalism") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -532,6 +535,12 @@ class RebootCommand(webapp.RequestHandler):
         memcache.flush_all()
         taskqueue.add(url="/fetchall")
         self.response.set_status(200)
+
+class ClearPageCacheCommand(webapp.RequestHandler):
+    def get(self):
+        logging.info("Clear Page Cache")
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","ChoiceView","DateView","RankingView"])
+        self.response.set_status(200)
         
 class InitDatabase(webapp.RequestHandler):
     def get(self):
@@ -568,6 +577,7 @@ def main():
                                         ('/fetchall', FetchAllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/reboot', RebootCommand),
+                                        ('/clearpagecache', ClearPageCacheCommand),
                                         ('/init', InitDatabase),
                                         ('/feed_all', FeedHandlerAll),
                                         ('/feed_researcher', FeedHandlerResearcher),
