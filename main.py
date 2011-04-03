@@ -233,6 +233,9 @@ class Feed(db.Model):
         except urlfetch.ResponseTooLargeError:
             logging.warning("Downloading URL " + self.comments + "failed: response tooo large.")
             return []
+        except urlfetch.InvalidURLError:
+            logging.warning("Downloading URL " + self.comments + "failed: invalid url.")
+            return []
         comments_updates = []
         if result.status_code == 200:
             logging.info("Successfully fetched URL " + self.comments)
