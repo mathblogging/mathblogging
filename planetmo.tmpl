@@ -7,42 +7,15 @@ $menu
 
 <h2> Latests posts tagged "mathoverflow"</h2>
 
-<table id="postsbydate">
-  <thead>
-  <tr>
-    <th align="left" class="datecolumn">
-      Date
-    </th>
-    <th align="left" class="blogcolumn">
-      Blog
-    </th>
-    <th align="left" class="postcolumn">
-      Post
-    </th>
-  </tr>
-  </thead>
-  <tbody>
   #for $entry in $moentries
-  <tr>
-    <td valign="bottom" class="datecolumn">
-      <div>
-	<%= entry.printShortTime() %>
-      </div>
-    </td>
-    <td valign="bottom" class="blogcolumn">
-      <div>
-	<a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a>
-      </div>
-    </td>
-    <td valign="bottom" class="postcolumn">
-      <div>
-	<a href="$entry.link" title="<%=entry.title%>"><%=entry.title%></a>
-      </div>
-    </td>
-  </tr>
+  <h3><a href="$entry.link" title="<%=entry.title%>"><%= entry.title %></a></h3>
+  <p>
+    <b>Posted on <a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a> at <%= entry.printShortTime() %>.</b>
+  </p>
+  <p>
+    <%= entry.cleancontent %>
+  </p>
   #end for
-  </tbody>
-</table>
 
 $disqus
 
