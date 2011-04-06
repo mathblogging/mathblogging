@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Cheetah.Template import Template
+from BeautifulSoup import BeautifulSoup
 
 import wsgiref.handlers
 import os
@@ -193,6 +194,8 @@ class Feed(db.Model):
                         x.title = html_escape(entry['title'])
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
+                        x.content = get_feedparser_entry_content(entry)
+                        x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -276,13 +279,15 @@ class Feed(db.Model):
         return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
+    def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent=""):
         self.title = title
         self.link = link
         self.homepage = homepage
         self.service = service
         self.timestamp = timestamp
         self.length = length
+        self.content = content
+        self.cleancontent = cleancontent
     def printTime(self):
         try:
             res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
