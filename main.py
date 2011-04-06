@@ -552,7 +552,6 @@ class FetchAllWorker(webapp.RequestHandler):
         for feed in Feed.all():
             logging.info("Adding fetch task for feed " + feed.title)
             taskqueue.add(url="/fetch", params={'url': feed.url})
-            taskqueue.add(url="/fetch", params={'url': feed.comments})
         self.response.set_status(200)
  
 class FetchAllSyncWorker(webapp.RequestHandler):
