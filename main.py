@@ -16,6 +16,7 @@
 
 from Cheetah.Template import Template
 from BeautifulSoup import BeautifulSoup
+from sanitize import HTML
 
 import wsgiref.handlers
 import os
@@ -196,6 +197,7 @@ class Feed(db.Model):
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
                         x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
+                        x.sanitizedcontent = HTML(x.content)
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -279,7 +281,7 @@ class Feed(db.Model):
         return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent=""):
+    def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
         self.title = title
         self.link = link
         self.homepage = homepage
@@ -288,6 +290,7 @@ class Entry:
         self.length = length
         self.content = content
         self.cleancontent = cleancontent
+        self.sanitizedcontent = sanitizedcontent
     def printTime(self):
         try:
             res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
