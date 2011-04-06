@@ -1,0 +1,27 @@
+$header
+
+$menu
+
+
+<div class="content">
+
+<h2> Latests posts tagged "math"</h2>
+
+  #for $entry in $mathentries
+  <h3><a href="$entry.link" title="<%=entry.title%>"><%= entry.title %></a></h3>
+  <p>
+    <b>Posted on <a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a> at <%= entry.printShortTime() %>.</b>
+  </p>
+  <p>
+    <%= entry.cleancontent %>
+  </p>
+  #end for
+
+$disqus
+
+</div>
+
+
+$footer
+  </body>
+</html>

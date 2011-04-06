@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Cheetah.Template import Template
+from BeautifulSoup import BeautifulSoup
 
 import wsgiref.handlers
 import os
@@ -193,6 +194,8 @@ class Feed(db.Model):
                         x.title = html_escape(entry['title'])
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
+                        x.content = get_feedparser_entry_content(entry)
+                        x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -276,13 +279,15 @@ class Feed(db.Model):
         return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, content=None, service=None, homepage=None, length=0):
+    def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent=""):
         self.title = title
         self.link = link
         self.homepage = homepage
         self.service = service
         self.timestamp = timestamp
         self.length = length
+        self.content = content
+        self.cleancontent = cleancontent
     def printTime(self):
         try:
             res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
@@ -390,6 +395,28 @@ class TagsView(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'bytags.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
+class PlanetMath(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "math", entry.tags)) > 0
+        entries_tagged_math = filter(has_tag_math, all_entries)
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+    
+        path = os.path.join(os.path.dirname(__file__), 'planetmath.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class PlanetMO(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo", entry.tags)) > 0
+        entries_tagged_math = filter(has_tag_math, all_entries)
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+    
+        path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 class CsvView(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
@@ -486,7 +513,7 @@ class FeedHandlerCommunities(webapp.RequestHandler):
 
 class FeedHandlerPeople(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institutions") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institution") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -573,6 +600,8 @@ def main():
                                         ('/bytags', TagsView),
                                         #testing 
                                         ('/bystats', RankingView),
+                                        ('/planetmath', PlanetMath),
+                                        ('/planetmo', PlanetMO),
                                         ('/database.csv', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
