@@ -486,7 +486,7 @@ class FeedHandlerCommunities(webapp.RequestHandler):
 
 class FeedHandlerPeople(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institutions") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institution") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
