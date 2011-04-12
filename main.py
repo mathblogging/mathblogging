@@ -406,7 +406,7 @@ class PlanetMath(webapp.RequestHandler):
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower().find("math") == 0, entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
         entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math[0:20], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'planetmath.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -417,7 +417,7 @@ class PlanetMO(webapp.RequestHandler):
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
         entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:20], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
