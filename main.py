@@ -191,8 +191,8 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = html_escape(self.title)
-                        x.title = html_escape(entry['title'])
+                        x.service = HTML(self.title)
+                        x.title = HTML(entry['title'])
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
@@ -230,6 +230,8 @@ class Feed(db.Model):
         return result[0:num]
     # fetching entries from comment feeds (just like regular feed)
     def fetch_comments_entries(self):
+        if self.comments == "":
+            return []
         try:
             result = urlfetch.fetch(self.comments,deadline=10) # 10 is max deadline
         except urlfetch.DownloadError:
@@ -401,7 +403,7 @@ class TagsView(webapp.RequestHandler):
 class PlanetMath(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "math", entry.tags)) > 0
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower().find("math") == 0, entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
         entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
@@ -552,7 +554,6 @@ class FetchAllWorker(webapp.RequestHandler):
         for feed in Feed.all():
             logging.info("Adding fetch task for feed " + feed.title)
             taskqueue.add(url="/fetch", params={'url': feed.url})
-            taskqueue.add(url="/fetch", params={'url': feed.comments})
         self.response.set_status(200)
  
 class FetchAllSyncWorker(webapp.RequestHandler):

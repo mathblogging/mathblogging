@@ -13,7 +13,7 @@ $menu
     <b>Posted on <a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a> at <%= entry.printShortTime() %>.</b>
   </p>
   <p>
-    <%= entry.cleancontent %>
+    <%= entry.sanitizedcontent %>
   </p>
   #end for
 
