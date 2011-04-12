@@ -7,15 +7,26 @@ $menu
 
 <h2> Latests posts tagged "mathoverflow"</h2>
 
-  #for $entry in $moentries
-  <h3><a href="$entry.link" title="<%=entry.title%>"><%= entry.title %></a></h3>
-  <p>
-    <b>Posted on <a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a> at <%= entry.printShortTime() %>.</b>
-  </p>
+#for $entry in $moentries
+<div class="planetbox">  
+  <div class="planethead">
+  <h2><a href="$entry.link" title="<%=entry.title%>"><%= entry.title %></a></h2>
+  <div class="planetsubtitle">Posted on <a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a> at <%= entry.printShortTime() %>.
+  </div>
+  <div class="planettags">
+     <i>Tags:</i>
+     #for $tag in $entry.tags
+         <%=tag.term%>,
+     #end for
+  </div>
+  </div>
+  <div class="planetbody">
   <p>
     <%= entry.sanitizedcontent %>
   </p>
-  #end for
+  </div>
+</div>
+#end for
 
 $disqus
 
