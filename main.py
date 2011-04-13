@@ -422,6 +422,18 @@ class PlanetMO(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
+class PlanetMOfeed(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo", entry.tags)) > 0
+        entries_tagged_math = filter(has_tag_math, all_entries)
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+    
+        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+
 class CsvView(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
@@ -606,6 +618,7 @@ def main():
                                         ('/bystats', RankingView),
                                         ('/planetmath', PlanetMath),
                                         ('/planetmo', PlanetMO),
+                                        ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
