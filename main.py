@@ -69,13 +69,15 @@ menu = """
 <!-- Top Navigation -->
 <div id="menu">
 <ul>
-  <li><h2><a href="/bydate" title="Latest Posts">Latest Posts</a></h2>
+  <li><h2><a href="/bydate" title="Posts">Posts</a></h2>
   </li>
-  <li><h2><a href="/bytype" title="Blogs by Category">Blogs by Category</a></h2>
+  <li><h2><a href="/bytype" title="Blogs">Blogs</a></h2>
   </li>
-  <li><h2><a href="/bystats" title="Blogs by Stats">Blogs by Stats</a></h2>
+  <li><h2><a href="/bystats" title="Stats">Stats</a></h2>
   </li>
-  <li><h2><a href="/bychoice" title="Our Favorites">Our Favorites</a></h2>
+  <li><h2><a href="/bychoice" title="Favorites">Favorites</a></h2>
+  </li>     
+  <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
   </li>
