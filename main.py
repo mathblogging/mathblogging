@@ -37,6 +37,8 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
+
+
 # Escape HTML entities.
 html_escape_table = {
     "&": "&amp;",
@@ -69,13 +71,13 @@ menu = """
 <!-- Top Navigation -->
 <div id="menu">
 <ul>
-  <li><h2><a href="/bydate" title="Posts">Posts</a></h2>
+  <li><h2><a href="/bydate" title="Recent posts">Posts</a></h2>
   </li>
-  <li><h2><a href="/bytype" title="Blogs">Blogs</a></h2>
+  <li><h2><a href="/bytype" title="Blogs by Category">Blogs</a></h2>
   </li>
-  <li><h2><a href="/bystats" title="Stats">Stats</a></h2>
+  <li><h2><a href="/bystats" title="Recent statistics">Stats</a></h2>
   </li>
-  <li><h2><a href="/bychoice" title="Favorites">Favorites</a></h2>
+  <li><h2><a href="/bychoice" title="Our favorite blogs">Favorites</a></h2>
   </li>     
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
@@ -419,7 +421,7 @@ class PlanetMO(webapp.RequestHandler):
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
         entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -427,7 +429,7 @@ class PlanetMO(webapp.RequestHandler):
 class PlanetMOfeed(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo", entry.tags)) > 0
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
         entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
