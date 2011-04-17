@@ -37,7 +37,8 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
-
+import cgi
+from google.appengine.ext.webapp.util import run_wsgi_app
 
 # Escape HTML entities.
 html_escape_table = {
@@ -62,6 +63,7 @@ header = """
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
+    
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
@@ -608,6 +610,32 @@ class InitDatabase(webapp.RequestHandler):
             feed.put()
         self.redirect('/')
         
+class TagPlanet(webapp.RequestHandler):
+    def get(self):
+        self.response.out.write("""
+          <html>
+            <body>
+              <form action="/planettag" method="post">
+                <div><textarea name="content" rows="1" cols="20"></textarea></div>
+                <div><input type="submit" value="Enter Tag"></div>
+              </form>
+            </body>
+          </html>""")
+
+class PlanetTag(webapp.RequestHandler):
+    def post(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        tagname = self.request.get('content')
+        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
+        entries_tagged = filter(has_tag, all_entries)
+        entries_tagged.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
+        all_tags = list(set(all_tag))
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'alltags': all_tags}
+    
+        path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 
 def main():
   application = webapp.WSGIApplication(
@@ -642,7 +670,9 @@ def main():
                                         ('/feed_people', FeedHandlerPeople),
                                         ('/feed_small', FeedHandlerPeople),
                                         ('/feed_academics', FeedHandlerAcademics),
-                                        ('/feed_communities', FeedHandlerCommunities)],
+                                        ('/feed_communities', FeedHandlerCommunities),
+                                        ('/tagplanet', TagPlanet),
+                                        ('/planettag', PlanetTag)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
 
