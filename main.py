@@ -205,8 +205,8 @@ class Feed(db.Model):
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
-                        x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        x.sanitizedcontent = HTML(x.content)
+                        #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
+                        #x.sanitizedcontent = HTML(x.content)
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
