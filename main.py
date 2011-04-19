@@ -391,14 +391,14 @@ class RankingView(CachedPage):
         renderedString = str(Template( file = path, searchList = (template_values,) ))
         return renderedString
 
-class DateView(webapp.RequestHandler):
-    def get(self):
+class DateView(CachedPage):
+    cacheName = "DateView"
+    def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        return str(Template( file = path, searchList = (template_values,) ))
         
 class TagsView(webapp.RequestHandler):
     def get(self):
