@@ -560,14 +560,18 @@ class FeedHandlerAcademics(webapp.RequestHandler):
 
 class FetchWorker(webapp.RequestHandler):
     def post(self):
-        url = self.request.get('url')
-        logging.info("FetchWorker: " + url)
-        if url:
-            feed = Feed.all().filter("url =", url).get()
-            if feed:
-                feed.restore_cache()
-        self.response.set_status(200)
-        logging.info("FetchWorker done: " + url)
+        try:
+            url = self.request.get('url')
+            logging.info("FetchWorker: " + url)
+            if url:
+                feed = Feed.all().filter("url =", url).get()
+                if feed:
+                    feed.restore_cache()
+            self.response.set_status(200)
+            logging.info("FetchWorker done: " + url)
+        except Exception:
+            self.response.set_status(200)
+            logging.warning("FetchWorker failed: " + url)
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
