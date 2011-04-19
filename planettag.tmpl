@@ -3,11 +3,26 @@ $header
 $menu
 
 
-<div class="content">
 
-<h2> PlanetMO <a href="planetmo-feed"><img src="/content/rss-64.png" alt="PlanetMO feed" height=25px/></a> </h2>
 
-At PlanetMO we collect recent posts tagged "mathoverflow", "mo" or "planetmo".
+<table id="postsbydate">
+  <tbody>
+#for $tag in $alltags
+  <tr>
+    <td valign="bottom" class="blogcolumn">
+      <div>
+<%= tag %>
+      </div>
+    </td>
+  </tr>
+  #end for
+  </tbody>
+</table>
+
+<h2> PlanetTAG </h2>
+
+At PlanetTAG we collect recent posts tagged with the tag you just entered, in this case: "$tagname".
+
 
 #for $entry in $moentries
 <div class="planetbox">  
@@ -24,7 +39,7 @@ At PlanetMO we collect recent posts tagged "mathoverflow", "mo" or "planetmo".
   </div>
   <div class="planetbody">
   <p>
-    <%= entry.content %>...
+    <%= entry.sanitizedcontent %>...
   </p>
   </div>
 </div>

@@ -37,6 +37,9 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
+import cgi
+from google.appengine.ext.webapp.util import run_wsgi_app
+
 # Escape HTML entities.
 html_escape_table = {
     "&": "&amp;",
@@ -60,6 +63,7 @@ header = """
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
+    
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
@@ -69,13 +73,15 @@ menu = """
 <!-- Top Navigation -->
 <div id="menu">
 <ul>
-  <li><h2><a href="/bydate" title="Latest Posts">Latest Posts</a></h2>
+  <li><h2><a href="/bydate" title="Recent posts">Posts</a></h2>
   </li>
-  <li><h2><a href="/bytype" title="Blogs by Category">Blogs by Category</a></h2>
+  <li><h2><a href="/bytype" title="Blogs by Category">Blogs</a></h2>
   </li>
-  <li><h2><a href="/bystats" title="Blogs by Stats">Blogs by Stats</a></h2>
+  <li><h2><a href="/bystats" title="Recent statistics">Stats</a></h2>
   </li>
-  <li><h2><a href="/bychoice" title="Our Favorites">Our Favorites</a></h2>
+  <li><h2><a href="/bychoice" title="Our favorite blogs">Favorites</a></h2>
+  </li>     
+  <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
   </li>
@@ -199,8 +205,8 @@ class Feed(db.Model):
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
-                        x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        x.sanitizedcontent = HTML(x.content)
+                        #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
+                        #x.sanitizedcontent = HTML(x.content)
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -385,14 +391,14 @@ class RankingView(CachedPage):
         renderedString = str(Template( file = path, searchList = (template_values,) ))
         return renderedString
 
-class DateView(webapp.RequestHandler):
-    def get(self):
+class DateView(CachedPage):
+    cacheName = "DateView"
+    def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        return str(Template( file = path, searchList = (template_values,) ))
         
 class TagsView(webapp.RequestHandler):
     def get(self):
@@ -417,13 +423,25 @@ class PlanetMath(webapp.RequestHandler):
 class PlanetMO(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo", entry.tags)) > 0
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
         entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:20], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class PlanetMOfeed(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
+        entries_tagged_math = filter(has_tag_math, all_entries)
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+    
+        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 
 class CsvView(webapp.RequestHandler):
     def get(self):
@@ -452,104 +470,79 @@ class CSEConfig(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class FeedHandlerAll(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class FeedHandlerResearcher(webapp.RequestHandler):
-    def get(self):
+class FeedHandlerBase(CachedPage):
+    def feeds(self):
+        return Feed.all()
+    def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class FeedHandlerGroups(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerEducator(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerJournalism(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","journalism") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class FeedHandlerInstitutions(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","institution") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerCommunities(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerPeople(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institution") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        return str(Template( file = path, searchList = (template_values,) ))
         
-class FeedHandlerAcademics(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
+class FeedHandlerAll(FeedHandlerBase):
+    cacheName = "FeedAll"
+    def feeds(self):
+        return Feed.all()
+
+class FeedHandlerResearcher(FeedHandlerBase):
+    cacheName = "FeedResearcher"
+    def feeds(self):
+        return Feed.all().filter("type =","research")
+
+class FeedHandlerGroups(FeedHandlerBase):
+    cacheName = "FeedGroups"
+    def feeds(self):
+        return Feed.all().filter("type =","groups")
+
+class FeedHandlerEducator(FeedHandlerBase):
+    cacheName = "FeedEducator"
+    def feeds(self):
+        return Feed.all().filter("type =","educator")
+
+class FeedHandlerJournalism(FeedHandlerBase):
+    cacheName = "FeedJournalism"
+    def feeds(self):
+        return Feed.all().filter("type =","journalism")
     
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-        
+class FeedHandlerInstitutions(FeedHandlerBase):
+    cacheName = "FeedInstitutions"
+    def feeds(self):
+        return Feed.all().filter("type =","institution")
+
+class FeedHandlerCommunities(FeedHandlerBase):
+    cacheName = "FeedCommunities"
+    def feeds(self):
+        return Feed.all().filter("type =","community")
+
+class FeedHandlerPeople(FeedHandlerBase):
+    cacheName = "FeedPeople"
+    def feeds(self):
+        return Feed.all().filter("type !=","community").filter("type !=","institution")
+
+class FeedHandlerAcademics(FeedHandlerBase):
+    cacheName = "FeedAcademics"
+    def feeds(self):
+        return Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism")       
     
     
 
 class FetchWorker(webapp.RequestHandler):
     def post(self):
-        url = self.request.get('url')
-        logging.info("FetchWorker: " + url)
-        if url:
-            feed = Feed.all().filter("url =", url).get()
-            if feed:
-                feed.restore_cache()
-        self.response.set_status(200)
-        logging.info("FetchWorker done: " + url)
+        try:
+            url = self.request.get('url')
+            logging.info("FetchWorker: " + url)
+            if url:
+                feed = Feed.all().filter("url =", url).get()
+                if feed:
+                    feed.restore_cache()
+            self.response.set_status(200)
+            logging.info("FetchWorker done: " + url)
+        except Exception:
+            self.response.set_status(200)
+            logging.warning("FetchWorker failed: " + url)
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
@@ -595,6 +588,32 @@ class InitDatabase(webapp.RequestHandler):
             feed.put()
         self.redirect('/')
         
+class TagPlanet(webapp.RequestHandler):
+    def get(self):
+        self.response.out.write("""
+          <html>
+            <body>
+              <form action="/planettag" method="post">
+                <div><textarea name="content" rows="1" cols="20"></textarea></div>
+                <div><input type="submit" value="Enter Tag"></div>
+              </form>
+            </body>
+          </html>""")
+
+class PlanetTag(webapp.RequestHandler):
+    def post(self):
+        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        tagname = self.request.get('content')
+        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
+        entries_tagged = filter(has_tag, all_entries)
+        entries_tagged.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
+        all_tags = list(set(all_tag))
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'alltags': all_tags}
+    
+        path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 
 def main():
   application = webapp.WSGIApplication(
@@ -609,6 +628,7 @@ def main():
                                         ('/bystats', RankingView),
                                         ('/planetmath', PlanetMath),
                                         ('/planetmo', PlanetMO),
+                                        ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
                                         ('/search', SearchView),
                                         ('/cse-config', CSEConfig),
@@ -628,7 +648,9 @@ def main():
                                         ('/feed_people', FeedHandlerPeople),
                                         ('/feed_small', FeedHandlerPeople),
                                         ('/feed_academics', FeedHandlerAcademics),
-                                        ('/feed_communities', FeedHandlerCommunities)],
+                                        ('/feed_communities', FeedHandlerCommunities),
+                                        ('/tagplanet', TagPlanet),
+                                        ('/planettag', PlanetTag)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
 
