@@ -149,7 +149,10 @@ def get_feedparser_entry_content(entry):
     try:
         return " ".join([content.value for content in entry.content])
     except AttributeError:
-        return ""
+        try:
+            return " ".join([content.value for content in entry.summary])
+        except AttributeError:
+            return ""
 
 class Feed(db.Model):
     url = db.LinkProperty()
