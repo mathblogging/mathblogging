@@ -63,7 +63,9 @@ header = """
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
-    
+     <script type="text/javascript" src="jquery-1.5.2.min.js"></script>         
+ <script type="text/javascript" src="jimpl_cloud.js"></script>
+
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
