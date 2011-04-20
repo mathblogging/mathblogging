@@ -151,7 +151,10 @@ def get_feedparser_entry_content(entry):
     try:
         return " ".join([content.value for content in entry.content])
     except AttributeError:
-        return ""
+        try:
+            return " ".join([content.value for content in entry.summary])
+        except AttributeError:
+            return ""
 
 class Feed(db.Model):
     url = db.LinkProperty()
@@ -204,8 +207,8 @@ class Feed(db.Model):
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
-                        x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        x.sanitizedcontent = HTML(x.content)
+                        #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
+                        #x.sanitizedcontent = HTML(x.content)
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -390,14 +393,14 @@ class RankingView(CachedPage):
         renderedString = str(Template( file = path, searchList = (template_values,) ))
         return renderedString
 
-class DateView(webapp.RequestHandler):
-    def get(self):
+class DateView(CachedPage):
+    cacheName = "DateView"
+    def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        return str(Template( file = path, searchList = (template_values,) ))
         
 class TagsView(webapp.RequestHandler):
     def get(self):
@@ -469,104 +472,79 @@ class CSEConfig(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class FeedHandlerAll(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class FeedHandlerResearcher(webapp.RequestHandler):
-    def get(self):
+class FeedHandlerBase(CachedPage):
+    def feeds(self):
+        return Feed.all()
+    def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class FeedHandlerGroups(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerEducator(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerJournalism(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","journalism") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class FeedHandlerInstitutions(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","institution") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerCommunities(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-    
-
-class FeedHandlerPeople(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","institution") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        return str(Template( file = path, searchList = (template_values,) ))
         
-class FeedHandlerAcademics(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
+class FeedHandlerAll(FeedHandlerBase):
+    cacheName = "FeedAll"
+    def feeds(self):
+        return Feed.all()
+
+class FeedHandlerResearcher(FeedHandlerBase):
+    cacheName = "FeedResearcher"
+    def feeds(self):
+        return Feed.all().filter("type =","research")
+
+class FeedHandlerGroups(FeedHandlerBase):
+    cacheName = "FeedGroups"
+    def feeds(self):
+        return Feed.all().filter("type =","groups")
+
+class FeedHandlerEducator(FeedHandlerBase):
+    cacheName = "FeedEducator"
+    def feeds(self):
+        return Feed.all().filter("type =","educator")
+
+class FeedHandlerJournalism(FeedHandlerBase):
+    cacheName = "FeedJournalism"
+    def feeds(self):
+        return Feed.all().filter("type =","journalism")
     
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-        
+class FeedHandlerInstitutions(FeedHandlerBase):
+    cacheName = "FeedInstitutions"
+    def feeds(self):
+        return Feed.all().filter("type =","institution")
+
+class FeedHandlerCommunities(FeedHandlerBase):
+    cacheName = "FeedCommunities"
+    def feeds(self):
+        return Feed.all().filter("type =","community")
+
+class FeedHandlerPeople(FeedHandlerBase):
+    cacheName = "FeedPeople"
+    def feeds(self):
+        return Feed.all().filter("type !=","community").filter("type !=","institution")
+
+class FeedHandlerAcademics(FeedHandlerBase):
+    cacheName = "FeedAcademics"
+    def feeds(self):
+        return Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism")       
     
     
 
 class FetchWorker(webapp.RequestHandler):
     def post(self):
-        url = self.request.get('url')
-        logging.info("FetchWorker: " + url)
-        if url:
-            feed = Feed.all().filter("url =", url).get()
-            if feed:
-                feed.restore_cache()
-        self.response.set_status(200)
-        logging.info("FetchWorker done: " + url)
+        try:
+            url = self.request.get('url')
+            logging.info("FetchWorker: " + url)
+            if url:
+                feed = Feed.all().filter("url =", url).get()
+                if feed:
+                    feed.restore_cache()
+            self.response.set_status(200)
+            logging.info("FetchWorker done: " + url)
+        except Exception:
+            self.response.set_status(200)
+            logging.warning("FetchWorker failed: " + url)
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
