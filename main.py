@@ -15,8 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Cheetah.Template import Template
-from BeautifulSoup import BeautifulSoup
-from sanitize import HTML
 
 import wsgiref.handlers
 import os
@@ -63,7 +61,9 @@ header = """
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
-    
+     <script type="text/javascript" src="/content/jquery-1.5.2.min.js"></script>         
+ <script type="text/javascript" src="/content/jimpl_cloud.js"></script>
+
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
@@ -147,10 +147,10 @@ def add_slash(str):
 
 def get_feedparser_entry_content(entry):
     try:
-        return " ".join([content.value for content in entry.content])
+        return " ".join([content.value for content in entry.content])            
     except AttributeError:
         try:
-            return " ".join([content.value for content in entry.summary])
+            return entry['summary']
         except AttributeError:
             return ""
 
@@ -200,13 +200,13 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = HTML(self.title)
-                        x.title = HTML(entry['title'])
+                        x.service = self.title
+                        x.title = entry['title']
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
                         #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        #x.sanitizedcontent = HTML(x.content)
+                        #x.sanitizedcontent = x.content
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -472,10 +472,8 @@ class CSEConfig(webapp.RequestHandler):
 
 
 class FeedHandlerBase(CachedPage):
-    def feeds(self):
-        return Feed.all()
     def generatePage(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
+        all_entries = [ entry for feed in self.feeds() for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
