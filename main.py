@@ -15,6 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Cheetah.Template import Template
+from BeautifulSoup import BeautifulSoup
+from sanitize import HTML
 
 import wsgiref.handlers
 import os
@@ -61,9 +63,7 @@ header = """
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
-     <script type="text/javascript" src="/content/jquery-1.5.2.min.js"></script>         
- <script type="text/javascript" src="/content/jimpl_cloud.js"></script>
-
+    
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
@@ -74,6 +74,14 @@ menu = """
 <div id="menu">
 <ul>
   <li><h2><a href="/bydate" title="Recent posts">Posts</a></h2>
+  <ul>
+    <li><h2><a href="/byresearchdate" title="Recent posts in Research">Researchers</a></h2>
+    </li>
+    <li><h2><a href="/bygroupdate" title="Recent posts in Groups">Groups</a></h2>
+    </li>
+    <li><h2><a href="/byeducatordate" title="Recent posts from Educators">Educators</a></h2>
+    </li>
+  </ul>
   </li>
   <li><h2><a href="/bytype" title="Blogs by Category">Blogs</a></h2>
   </li>
@@ -153,6 +161,7 @@ def get_feedparser_entry_content(entry):
             return entry['summary']
         except AttributeError:
             return ""
+            
 
 class Feed(db.Model):
     url = db.LinkProperty()
@@ -161,7 +170,7 @@ class Feed(db.Model):
     listtitle = db.StringProperty()
     person = db.StringProperty()
     subject = db.StringListProperty()
-    type = db.StringProperty() # can be 'groups', 'research', 'educator', 'micro', 'mathblogging'
+    type = db.StringProperty() # can be 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
     comments = db.StringProperty()
@@ -200,13 +209,13 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = self.title
-                        x.title = entry['title']
+                        x.service = HTML(self.title)
+                        x.title = HTML(entry['title'])
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
                         #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        #x.sanitizedcontent = x.content
+                        #x.sanitizedcontent = HTML(x.content)
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -394,12 +403,38 @@ class RankingView(CachedPage):
 class DateView(CachedPage):
     cacheName = "DateView"
     def generatePage(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type !=","institution").filter("type !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
+
         
+class DateResearchView(webapp.RequestHandler):
+    def get(self):
+        all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+
+        path = os.path.join(os.path.dirname(__file__), 'byresearchdate.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class DateGroupView(webapp.RequestHandler):
+    def generatePage(self):
+        all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        path = os.path.join(os.path.dirname(__file__), 'bygroupdate.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+class DateEducatorView(webapp.RequestHandler):
+    def generatePage(self):
+        all_entries = [ entry for feed in Feed.all().filter("type =","group") for entry in feed.entries() ]
+        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        path = os.path.join(os.path.dirname(__file__), 'byeducatordate.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
 class TagsView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
@@ -472,8 +507,10 @@ class CSEConfig(webapp.RequestHandler):
 
 
 class FeedHandlerBase(CachedPage):
+    def feeds(self):
+        return Feed.all()
     def generatePage(self):
-        all_entries = [ entry for feed in self.feeds() for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
@@ -621,6 +658,9 @@ def main():
                                         ('/bytype', TypeView),
                                         ('/bychoice', ChoiceView),
                                         ('/bydate', DateView),
+                                        ('/byresearchdate', DateResearchView),
+                                        ('/bygroupdate', DateGroupView),
+                                        ('/byeducatordate', DateEducatorView),
                                         ('/bytags', TagsView),
                                         #testing 
                                         ('/bystats', RankingView),
