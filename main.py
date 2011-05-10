@@ -420,18 +420,20 @@ class DateResearchView(webapp.RequestHandler):
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateGroupView(webapp.RequestHandler):
-    def generatePage(self):
+    def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+
         path = os.path.join(os.path.dirname(__file__), 'bygroupdate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateEducatorView(webapp.RequestHandler):
-    def generatePage(self):
+    def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","group") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+
         path = os.path.join(os.path.dirname(__file__), 'byeducatordate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
