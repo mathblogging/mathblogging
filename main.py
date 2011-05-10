@@ -15,8 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Cheetah.Template import Template
-from BeautifulSoup import BeautifulSoup
-from sanitize import HTML
 
 import wsgiref.handlers
 import os
@@ -202,13 +200,13 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = HTML(self.title)
-                        x.title = HTML(entry['title'])
+                        x.service = self.title
+                        x.title = entry['title']
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
                         #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        #x.sanitizedcontent = HTML(x.content)
+                        #x.sanitizedcontent = x.content
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
