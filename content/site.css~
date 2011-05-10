@@ -41,7 +41,7 @@ h1 {
 
 h2 {
     font-style: italic;
-    font-family: "Palatino Linotype","Palatino","URW Palladio L",Palladio,"Bitstream Vera Serif",sans-serif;
+    font-family: "Palatino Linotype","Palatino","URW Palladio L",Palladio,"Bitstream Vera Serif",serif;
     border-bottom: 3px solid gray;
     color: black;
     padding-bottom: 3px;
@@ -288,7 +288,6 @@ background-color:black;
     border: 1px solid black;
     box-shadow: 4px 4px 8px black;
     -webkit-box-shadow: 4px 4px 8px black;
-    float: left;
 }
 
 #postsbydate td {
@@ -327,3 +326,86 @@ background-color:black;
 }
 
 /* ------------ End Date View Table --------------- */
+
+/* ------------ Twitter ---------------- */
+
+.twitter {
+    margin: auto;
+    padding: 20pt;
+}
+
+.twtr-widget {
+    margin: auto;
+    width: 400px;
+}
+
+.twtr-doc {
+    box-shadow: 2px 2px 4px #000000;
+}
+
+/* ------------- By ranking ---------------- */
+
+.rankingcolumn {
+    float: left;
+    margin: 1ex !important;
+}
+
+.rankingcolumn .datecolumn{
+    width: 3ex !important;
+}
+
+/* -------------- Planet -------------------- */
+
+.planetbox {
+    box-shadow: 4px 4px 7px black;
+    -webkit-box-shadow: 4px 4px 7px black;
+    border: 1px solid gray;
+    padding: 18px 18px 18px 18px;
+    margin: 10px 10px 50px 10px;
+}
+
+.planetbody, .planetbody h1, .planetbody h2, .planetbody h3, .planetbody h4 {
+    font-family: "Helvetica", "Bitstream Vera Sans", sans-serif, sans !important;
+    border: 0;
+    font-style: normal;
+    text-decoration: none;
+}
+
+.planethead h2 {
+    font-size: 150%;
+    margin-top: 0px;
+}
+
+.planetsubtitle {
+    font-size: 120%;
+    font-weight: bold;
+}
+
+.planethead h2 a {
+    text-decoration: none;
+}
+
+.planetbody h1 {
+    font-size: 125%;
+}
+
+.planetbody h2 {
+    font-size: 115%;
+}
+
+.planetbody h3 {
+    font-size: 110%;
+}
+
+/* -------------- Planet -------------------- */
+.tagcloud { 
+    width: 800px; margin-left: 40px; border: 1px dashed
+  
+} 
+.tagcloud a{ 
+    text-decoration:none; border-bottom:1px dotted ; padding-bottom:1px; margin: 4px; 
+  
+} 
+.tagcloud a:hover { 
+  text-decoration:none; border-bottom:2px solid ; 
+}
