@@ -88,7 +88,7 @@ menu = """
   </li>
   <li><h2><a href="/bystats" title="Recent statistics">Stats</a></h2>
   </li>
-  <li><h2><a href="/bychoice" title="Our favorite blogs">Favorites</a></h2>
+  <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
   </li>     
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
@@ -400,11 +400,19 @@ class TypeView(SimpleCheetahPage):
     cacheName = "TypeView"
     templateName = "bytype.tmpl"
 
-class ChoiceView(SimpleCheetahPage):
-    cacheName = "ChoiceView"
-    templateName = "bychoice.tmpl"
-
-# testing
+class WeeklyPicks(SimpleCheetahPage):
+       cacheName = "WeeklyPicks"
+       def generatePage(self):
+        entries = [ entry for feed in Feed.all().filter("person =","mathblogging.org") for entry in feed.entries() ]
+        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == "weekly picks", entry.tags)) > 0
+        picks = filter(has_tag, entries)
+        picks.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        template_values = { 'qf': QueryFactory(), 'picks_entries': picks, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
+        
+        path = os.path.join(os.path.dirname(__file__), 'weekly_picks.tmpl')
+        return str(Template( file = path, searchList = (template_values,) ))
+        
+        
 class RankingView(CachedPage):
     cacheName = "RankingView"
     def generatePage(self):
@@ -626,7 +634,7 @@ class RebootCommand(webapp.RequestHandler):
 class ClearPageCacheCommand(webapp.RequestHandler):
     def get(self):
         logging.info("Clear Page Cache")
-        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","ChoiceView","DateView","RankingView"])
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","WeeklyPicks","DateView","RankingView"])
         self.response.set_status(200)
         
 class InitDatabase(webapp.RequestHandler):
@@ -667,7 +675,7 @@ def main():
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', TypeView),
-                                        ('/bychoice', ChoiceView),
+                                        ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateResearchView),
                                         ('/bygroupdate', DateGroupView),

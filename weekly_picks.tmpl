@@ -1,0 +1,34 @@
+$header
+
+$menu
+
+
+<div class="content">
+
+<h2> Weekly picks <a href="https://mathblogging.wordpress.com/category/weekly-picks/feed/"><img src="/content/rss-64.png" alt="Weekly picks" height=25px/></a> </h2>
+
+Our weekly picks, crossposted from <a href="https://mathblogging.wordpress.com/category/weekly-picks/">Mathblogging.org -- the blog</a>.
+
+#for $entry in $picks_entries
+<div class="planetbox">  
+  <div class="planethead">
+  <h2><a href="$entry.link" title="<%=entry.title%>"><%= entry.title %></a></h2>
+  <div class="planetsubtitle">Posted on <%= entry.printShortTime_created() %>.
+  </div>
+  </div>
+  <div class="planetbody">
+  <p>
+    <%= entry.content %>...
+  </p>
+  </div>
+</div>
+#end for
+
+$disqus
+
+</div>
+
+
+$footer
+  </body>
+</html>
