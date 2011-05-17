@@ -3,25 +3,20 @@ $header
 $menu
 
 
+<p>
+<form action="/planettag" method="get">
+<div><textarea name="content" rows="1" cols="20"></textarea></div>
+<div><input type="submit" value="Enter Tag"></div>
+</form>
+</ p>
 
 
-<table id="postsbydate">
-  <tbody>
-#for $tag in $alltags
-  <tr>
-    <td valign="bottom" class="blogcolumn">
-      <div>
-<%= tag %>
-      </div>
-    </td>
-  </tr>
-  #end for
-  </tbody>
-</table>
+<div id="example" style="width: 750px; height: 550px; position: relative;"></div>
+
 
 <h2> PlanetTAG </h2>
 
-At PlanetTAG we collect recent posts tagged with the tag you just entered, in this case: "$tagname".
+At PlanetTAG we collect recent posts tagged with a tag you can entered above. Right now, you have searched for <big>=$tagname=</ big>.
 
 
 #for $entry in $moentries
@@ -39,7 +34,7 @@ At PlanetTAG we collect recent posts tagged with the tag you just entered, in th
   </div>
   <div class="planetbody">
   <p>
-    <%= entry.sanitizedcontent %>...
+    <%= entry.content %>...
   </p>
   </div>
 </div>
@@ -49,6 +44,36 @@ $disqus
 
 </div>
 
+#raw
+ <script type="text/javascript">
+      /*!
+       * Create an array of objects to be passed to jQCloud, each representing a word in the cloud and specifying
+       * the following mandatory attributes:
+       *
+       * text: a string containing the word(s)
+       * weight: a number (integer or float) defining the relative importance of the word
+       *         (such as the number of occurrencies, etc.). The range of values is arbitrary, as they will
+       *         be linearly mapped to a discrete scale from 1 to 10.
+       *
+       * You can also specify the following optional attributes:
+       *
+       * url: a URL to which the word will be linked. It will be used as the href attribute of an HTML anchor.
+       * title: an HTML title for the <span> that will contain the word(s)
+       */
+      var word_list = [
+#end raw
+
+#for $tag in $commontags
+          {text: "<%= tag[0] %>", weight: <%= tag[1] %>},
+#end for
+#raw
+      ];
+      $(document).ready(function() {
+        // Call jQCloud on a jQuery object passing the word list as the first argument. Chainability of methods is maintained.
+        $("#example").jQCloud(word_list);
+      });
+    </script>
+#end raw
 
 $footer
   </body>

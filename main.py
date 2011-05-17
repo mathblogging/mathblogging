@@ -15,8 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from Cheetah.Template import Template
-from BeautifulSoup import BeautifulSoup
-from sanitize import HTML
 
 import wsgiref.handlers
 import os
@@ -25,6 +23,7 @@ import feedparser
 import datetime
 import time
 import logging
+import counter
 
 from operator import attrgetter
 from time import strftime, strptime, gmtime
@@ -63,7 +62,9 @@ header = """
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <title>Mathblogging.org</title>
-    
+    <script type="text/javascript" src="/content/jquery-1.5.2.min.js"></script>         
+    <link rel="stylesheet" type="text/css" href="/content/jqcloud.css" />
+    <script type="text/javascript" src="/content/jqcloud-0.1.8.js"></script>
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
@@ -209,13 +210,13 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = HTML(self.title)
-                        x.title = HTML(entry['title'])
+                        x.service = self.title
+                        x.title = entry['title']
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.content = get_feedparser_entry_content(entry)
                         #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        #x.sanitizedcontent = HTML(x.content)
+                        #x.sanitizedcontent = x.content
                         x.homepage = self.homepage
                         try:
                             x.tags = entry.tags
@@ -509,12 +510,10 @@ class CSEConfig(webapp.RequestHandler):
 
 
 class FeedHandlerBase(CachedPage):
-    def feeds(self):
-        return Feed.all()
     def generatePage(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
+        all_entries = [ entry for feed in self.feeds() for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header, }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
@@ -625,20 +624,8 @@ class InitDatabase(webapp.RequestHandler):
             feed.put()
         self.redirect('/')
         
-class TagPlanet(webapp.RequestHandler):
-    def get(self):
-        self.response.out.write("""
-          <html>
-            <body>
-              <form action="/planettag" method="post">
-                <div><textarea name="content" rows="1" cols="20"></textarea></div>
-                <div><input type="submit" value="Enter Tag"></div>
-              </form>
-            </body>
-          </html>""")
-
 class PlanetTag(webapp.RequestHandler):
-    def post(self):
+    def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         tagname = self.request.get('content')
         has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
@@ -646,7 +633,8 @@ class PlanetTag(webapp.RequestHandler):
         entries_tagged.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
         all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
         all_tags = list(set(all_tag))
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'alltags': all_tags}
+        common_tags = counter.Counter(all_tag).most_common(100)
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'alltags': all_tags, 'commontags': common_tags}
     
         path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
@@ -664,7 +652,6 @@ def main():
                                         ('/bygroupdate', DateGroupView),
                                         ('/byeducatordate', DateEducatorView),
                                         ('/bytags', TagsView),
-                                        #testing 
                                         ('/bystats', RankingView),
                                         ('/planetmath', PlanetMath),
                                         ('/planetmo', PlanetMO),
@@ -689,7 +676,6 @@ def main():
                                         ('/feed_small', FeedHandlerPeople),
                                         ('/feed_academics', FeedHandlerAcademics),
                                         ('/feed_communities', FeedHandlerCommunities),
-                                        ('/tagplanet', TagPlanet),
                                         ('/planettag', PlanetTag)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
