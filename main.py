@@ -223,9 +223,18 @@ class Feed(db.Model):
                         except AttributeError:
                             x.tags = [ ]
                         try:
-                            x.timestamp = entry.updated_parsed
+                            x.timestamp_updated = entry.updated_parsed
                         except AttributeError:
-                            x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            x.timestamp_updated = time.gmtime(0)
+                        try:
+                            x.timestamp_created = entry.published_parsed
+                        except AttributeError:
+                            try:
+                                x.timestamp_created = entry.updated_parsed
+                            except AttributeError:
+                                #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                                x.timestamp_created = time.gmtime(0)
                         updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
@@ -276,10 +285,15 @@ class Feed(db.Model):
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.homepage = self.homepage
                         try:
-                            x.timestamp = entry.updated_parsed
+                            x.timestamp_updated = entry.updated_parsed
                         except AttributeError:
                             #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                            x.timestamp = time.gmtime(0)
+                            x.timestamp_updated = time.gmtime(0)
+                        try:
+                            x.timestamp_created = entry.published_parsed
+                        except AttributeError:
+                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            x.timestamp_created = time.gmtime(0)
                         comments_updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
@@ -302,35 +316,42 @@ class Feed(db.Model):
         return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
+    def __init__(self=None, title=None, link=None, timestamp_created=None, timestamp_updated=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
         self.title = title
         self.link = link
         self.homepage = homepage
         self.service = service
-        self.timestamp = timestamp
+        self.timestamp_created = timestamp_created
+        self.timestamp_updated = timestamp_updated
         self.length = length
         self.content = content
         self.cleancontent = cleancontent
         self.sanitizedcontent = sanitizedcontent
-    def printTime(self):
+    def printTime_created(self):
         try:
-            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
+            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp_created)
         except TypeError:
             res = ""
         return res
-    def gettime(self):
-        if self.timestamp == None:
+    def printTime_updated(self):
+        try:
+            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp_updated)
+        except TypeError:
+            res = ""
+        return res
+    def gettime(self): #REMINDER for future code reading: change name to gettime_created -- after Felix fixes/improves statsview to fix the bug
+        if self.timestamp_created == None:
             return time.gmtime(0)
         else:
-            return self.timestamp
-    def printShortTime(self):
+            return self.timestamp_created
+    def printShortTime_created(self):
         try:
             today = time.localtime()
-            if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] <= self.timestamp[2]:
+            if today[0] == self.timestamp_created[0] and today[1] <= self.timestamp_created[1] and today[2] <= self.timestamp_created[2]:
                 return "today"
             #if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] - 1 <= self.timestamp[2]:
             #    return "yesterday"
-            res = strftime('%b %d',self.timestamp)
+            res = strftime('%b %d',self.timestamp_created)
         except TypeError:
             res = ""
         return res
@@ -405,7 +426,7 @@ class DateView(CachedPage):
     cacheName = "DateView"
     def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","institution").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
@@ -414,7 +435,7 @@ class DateView(CachedPage):
 class DateResearchView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'byresearchdate.tmpl')
@@ -423,7 +444,7 @@ class DateResearchView(webapp.RequestHandler):
 class DateGroupView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bygroupdate.tmpl')
@@ -432,7 +453,7 @@ class DateGroupView(webapp.RequestHandler):
 class DateEducatorView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","group") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'byeducatordate.tmpl')
@@ -441,7 +462,7 @@ class DateEducatorView(webapp.RequestHandler):
 class TagsView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bytags.tmpl')
@@ -452,7 +473,7 @@ class PlanetMath(webapp.RequestHandler):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower().find("math") == 0, entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math[0:20], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'planetmath.tmpl')
@@ -463,7 +484,7 @@ class PlanetMO(webapp.RequestHandler):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
@@ -474,7 +495,7 @@ class PlanetMOfeed(webapp.RequestHandler):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
@@ -493,7 +514,7 @@ class CsvView(webapp.RequestHandler):
 class SearchView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'search.tmpl')
@@ -502,7 +523,7 @@ class SearchView(webapp.RequestHandler):
 class CSEConfig(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
@@ -510,15 +531,9 @@ class CSEConfig(webapp.RequestHandler):
 
 
 class FeedHandlerBase(CachedPage):
->>>>>>>>>>>>>>>>>>>> File 1
->>>>>>>>>>>>>>>>>>>> File 2
-    def feeds(self):
-        return Feed.all()
->>>>>>>>>>>>>>>>>>>> File 3
-<<<<<<<<<<<<<<<<<<<<
     def generatePage(self):
         all_entries = [ entry for feed in self.feeds() for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
@@ -636,7 +651,7 @@ class PlanetTag(webapp.RequestHandler):
         tagname = self.request.get('content')
         has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
         entries_tagged = filter(has_tag, all_entries)
-        entries_tagged.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
         all_tags = list(set(all_tag))
         common_tags = counter.Counter(all_tag).most_common(100)
