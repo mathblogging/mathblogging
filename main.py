@@ -175,6 +175,10 @@ class Feed(db.Model):
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
     comments = db.StringProperty()
+    comments_day = db.IntegerProperty()
+    comments_week = db.IntegerProperty()
+    posts_week = db.IntegerProperty()
+    posts_month = db.IntegerProperty()
     def restore_cache(self):
         logging.info("Restoring Cache of Feed " + self.title)
         #try: 
@@ -182,10 +186,14 @@ class Feed(db.Model):
         memcache.set(self.url,updates,86400) # 1 day 
         # memcache element for comment feeds. fetch_comments_entries accumulates the list, self.comments is the database object to call up later
         comments_updates = self.fetch_comments_entries()
-        memcache.set(self.comments,comments_updates,86400) # 1 day 
-        #except:
-            #logging.info("There was a problem downloading " + self.url)
-            #pass
+        memcache.set(self.comments,comments_updates,86400) # 1 day
+        logging.info("Memcache updated successfully.")
+        self.comments_day = len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
+        self.comments_week = len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
+        self.posts_month = len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
+        self.posts_week = len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
+        logging.info("Feed " + self.title + " has stats " + str(self.comments_day) + " " + str(self.comments_week) + " " + str(self.posts_month) + " " + str(self.posts_week))
+        self.put()
     def entries(self,num=None):
         if not memcache.get(self.url):
             return [] # TODO: schedule a fetch-task !
@@ -285,21 +293,8 @@ class Feed(db.Model):
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
             except LookupError, e:
                 logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
-                    
+
         return comments_updates
-      
-    #Function to calculate the number of comments last 24h   (conversion into seconds)
-    def comments_day(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
-    #Function to calculate the number of comments last 7 days (conversion into seconds)
-    def comments_week(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
-    #Function to calculate the number of posts last 30 days (conversion into seconds)
-    def posts_month(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
-    #Function to calculate the number of posts last 7 days (conversion into seconds)
-    def posts_week(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
     def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
@@ -387,14 +382,10 @@ class ChoiceView(SimpleCheetahPage):
 class RankingView(CachedPage):
     cacheName = "RankingView"
     def generatePage(self):
-        feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
-        feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
-        feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all().filter("type !=","community") if feed.posts_week() != 0]
-        feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all().filter("type !=","community") if feed.posts_month() != 0]
-        feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_comments_day = db.GqlQuery("SELECT * FROM Feed WHERE comments_day != 0 ORDER BY comments_day DESC").fetch(1000)
+        feeds_w_comments_week = db.GqlQuery("SELECT * FROM Feed WHERE comments_week != 0 ORDER BY comments_week DESC").fetch(1000)
+        feeds_w_posts_week = db.GqlQuery("SELECT * FROM Feed WHERE posts_week != 0 ORDER BY posts_week DESC").fetch(1000)
+        feeds_w_posts_month = db.GqlQuery("SELECT * FROM Feed WHERE posts_month != 0 ORDER BY posts_month DESC").fetch(1000)
         template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
             
         path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
@@ -576,9 +567,9 @@ class FetchWorker(webapp.RequestHandler):
                     feed.restore_cache()
             self.response.set_status(200)
             logging.info("FetchWorker done: " + url)
-        except Exception:
+        except Exception,e:
             self.response.set_status(200)
-            logging.warning("FetchWorker failed: " + url)
+            logging.warning("FetchWorker failed: " + url + "\n" + str(e))
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
