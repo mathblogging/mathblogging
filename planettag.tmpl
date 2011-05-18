@@ -3,13 +3,14 @@ $header
 $menu
 
 
+<!--
 <p>
 <form action="/planettag" method="get">
 <div><textarea name="content" rows="1" cols="20"></textarea></div>
 <div><input type="submit" value="Enter Tag"></div>
 </form>
 </ p>
-
+-->
 
 <div id="example" style="width: 750px; height: 550px; position: relative;"></div>
 
@@ -64,7 +65,7 @@ $disqus
 #end raw
 
 #for $tag in $commontags
-          {text: "<%= tag[0] %>", weight: <%= tag[1] %>},
+          {text: "<%= tag[0] %>", weight: <%= tag[1] %>, url: "/planettag?content=<%= tag[0] %>"},
 #end for
 #raw
       ];
