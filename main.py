@@ -170,7 +170,6 @@ class Feed(db.Model):
     title = db.StringProperty()
     listtitle = db.StringProperty()
     person = db.StringProperty()
-    subject = db.StringListProperty()
     type = db.StringProperty() # can be 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
@@ -636,8 +635,7 @@ class InitDatabase(webapp.RequestHandler):
             feed.homepage = "http://peter.krautzberger.info"
             feed.title = "thelazyscience"
             feed.person = "Peter Krautzberger"
-            feed.subject = ["math.LO"]
-            feed.type = "students"
+            feed.type = "research"
             feed.priority = 1
             feed.favicon = "http://www.mathblogging.org/content/favicon.ico"
             feed.comments = "http://thelazyscience.disqus.com/latest.rss"
