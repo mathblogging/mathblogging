@@ -450,7 +450,7 @@ class DateGroupView(webapp.RequestHandler):
 
 class DateEducatorView(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","group") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
