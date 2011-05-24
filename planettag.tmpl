@@ -2,21 +2,27 @@ $header
 
 $menu
 
+<div class="content">
 
+
+<!--
 <p>
 <form action="/planettag" method="get">
 <div><textarea name="content" rows="1" cols="20"></textarea></div>
 <div><input type="submit" value="Enter Tag"></div>
 </form>
 </ p>
-
-
-<div id="example" style="width: 750px; height: 550px; position: relative;"></div>
-
+-->
 
 <h2> PlanetTAG </h2>
 
-At PlanetTAG we collect recent posts tagged with a tag you can entered above. Right now, you have searched for <big>=$tagname=</ big>.
+<p> At PlanetTAG we collect recent posts tagged with a tag of your choice with just one click! </p>
+
+<p> Right now, you chose <big>=$tagname=</big>. </p>
+
+<div id="tagcloud" style="width: 750px; height: 550px; position: relative;"></div>
+
+
 
 
 #for $entry in $moentries
@@ -64,16 +70,17 @@ $disqus
 #end raw
 
 #for $tag in $commontags
-          {text: "<%= tag[0] %>", weight: <%= tag[1] %>},
+          {text: "<%= tag[0] %>", weight: <%= tag[1] %>, url: "/planettag?content=<%= tag[0] %>"},
 #end for
 #raw
       ];
       $(document).ready(function() {
         // Call jQCloud on a jQuery object passing the word list as the first argument. Chainability of methods is maintained.
-        $("#example").jQCloud(word_list);
+        $("#tagcloud").jQCloud(word_list);
       });
     </script>
 #end raw
+
 
 $footer
   </body>

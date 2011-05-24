@@ -170,7 +170,6 @@ class Feed(db.Model):
     title = db.StringProperty()
     listtitle = db.StringProperty()
     person = db.StringProperty()
-    subject = db.StringListProperty()
     type = db.StringProperty() # can be 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
@@ -451,7 +450,7 @@ class DateGroupView(webapp.RequestHandler):
 
 class DateEducatorView(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","group") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
@@ -636,8 +635,7 @@ class InitDatabase(webapp.RequestHandler):
             feed.homepage = "http://peter.krautzberger.info"
             feed.title = "thelazyscience"
             feed.person = "Peter Krautzberger"
-            feed.subject = ["math.LO"]
-            feed.type = "students"
+            feed.type = "research"
             feed.priority = 1
             feed.favicon = "http://www.mathblogging.org/content/favicon.ico"
             feed.comments = "http://thelazyscience.disqus.com/latest.rss"
