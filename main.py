@@ -90,8 +90,6 @@ menu = """
   </li>
   <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
   </li>     
-  <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
-  </li>     
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
@@ -163,7 +161,7 @@ def get_feedparser_entry_content(entry):
         try:
             return entry['summary']
         except AttributeError:
-            return " "
+            return ""
             
 
 class Feed(db.Model):
@@ -323,6 +321,21 @@ class Entry:
         self.content = content
         self.cleancontent = cleancontent
         self.sanitizedcontent = sanitizedcontent
+
+    def printTime_created_rfc3339(self):
+        try:
+            res = strftime('%Y-%m-%dT%H:%M:%SZ',self.timestamp_created)
+        except TypeError:
+            res = ""
+        return res
+
+    def printTime_updated_rfc3339(self):
+        try:
+            res = strftime('%Y-%m-%dT%H:%M:%SZ',self.timestamp_updated)
+        except TypeError:
+            res = ""
+        return res
+
     def printTime_created(self):
         try:
             res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp_created)
