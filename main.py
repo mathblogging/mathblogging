@@ -453,11 +453,7 @@ class DateGroupView(webapp.RequestHandler):
 class DateEducatorView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
-<<<<<<< HEAD
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-=======
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
->>>>>>> 3b736b000c31c13fa30d3fb38d4803cdb1c8baf9
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'byeducatordate.tmpl')
