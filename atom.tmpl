@@ -23,8 +23,9 @@
    </author>
 
    <link href="$entry.link"/>
-   <updated><%=entry.printTime()%></updated>
-   <id><%=entry.service%> <%=entry.printTime()%> <%=entry.title%></id>
+   <published> <%=entry.printTime_created()%></published>
+   <updated><%=entry.printTime_updated()%></updated>
+   <id><%=entry.service%> <%=entry.printTime_created()%> <%=entry.title%></id>
    <content type="html"> Length: approx <%=entry.length/5%> words. </content>
  </entry>
  #end for

@@ -12,6 +12,28 @@ indexes:
 
 - kind: Feed
   properties:
+  - name: comments_day
+  - name: comments_day
+
+- kind: Feed
+  properties:
+  - name: comments_week
+  - name: comments_week
+
+- kind: Feed
+  properties:
+  - name: posts_month
+  - name: type
+  - name: posts_month
+
+- kind: Feed
+  properties:
+  - name: posts_week
+  - name: type
+  - name: posts_week
+
+- kind: Feed
+  properties:
   - name: type
   - name: listtitle
 

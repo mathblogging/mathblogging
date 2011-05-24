@@ -88,7 +88,9 @@ menu = """
   </li>
   <li><h2><a href="/bystats" title="Recent statistics">Stats</a></h2>
   </li>
-  <li><h2><a href="/bychoice" title="Our favorite blogs">Favorites</a></h2>
+  <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
+  </li>     
+  <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
   </li>     
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
@@ -170,11 +172,14 @@ class Feed(db.Model):
     title = db.StringProperty()
     listtitle = db.StringProperty()
     person = db.StringProperty()
-    subject = db.StringListProperty()
     type = db.StringProperty() # can be 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
     comments = db.StringProperty()
+    comments_day = db.IntegerProperty()
+    comments_week = db.IntegerProperty()
+    posts_week = db.IntegerProperty()
+    posts_month = db.IntegerProperty()
     def restore_cache(self):
         logging.info("Restoring Cache of Feed " + self.title)
         #try: 
@@ -182,10 +187,14 @@ class Feed(db.Model):
         memcache.set(self.url,updates,86400) # 1 day 
         # memcache element for comment feeds. fetch_comments_entries accumulates the list, self.comments is the database object to call up later
         comments_updates = self.fetch_comments_entries()
-        memcache.set(self.comments,comments_updates,86400) # 1 day 
-        #except:
-            #logging.info("There was a problem downloading " + self.url)
-            #pass
+        memcache.set(self.comments,comments_updates,86400) # 1 day
+        logging.info("Memcache updated successfully.")
+        self.comments_day = len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
+        self.comments_week = len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
+        self.posts_month = len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
+        self.posts_week = len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
+        logging.info("Feed " + self.title + " has stats " + str(self.comments_day) + " " + str(self.comments_week) + " " + str(self.posts_month) + " " + str(self.posts_week))
+        self.put()
     def entries(self,num=None):
         if not memcache.get(self.url):
             return [] # TODO: schedule a fetch-task !
@@ -223,9 +232,18 @@ class Feed(db.Model):
                         except AttributeError:
                             x.tags = [ ]
                         try:
-                            x.timestamp = entry.updated_parsed
+                            x.timestamp_updated = entry.updated_parsed
                         except AttributeError:
-                            x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            x.timestamp_updated = time.gmtime(0)
+                        try:
+                            x.timestamp_created = entry.published_parsed
+                        except AttributeError:
+                            try:
+                                x.timestamp_created = entry.updated_parsed
+                            except AttributeError:
+                                #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                                x.timestamp_created = time.gmtime(0)
                         updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
@@ -276,61 +294,60 @@ class Feed(db.Model):
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.homepage = self.homepage
                         try:
-                            x.timestamp = entry.updated_parsed
+                            x.timestamp_updated = entry.updated_parsed
                         except AttributeError:
                             #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                            x.timestamp = time.gmtime(0)
+                            x.timestamp_updated = time.gmtime(0)
+                        try:
+                            x.timestamp_created = entry.published_parsed
+                        except AttributeError:
+                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                            x.timestamp_created = time.gmtime(0)
                         comments_updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
             except LookupError, e:
                 logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
-                    
+
         return comments_updates
-      
-    #Function to calculate the number of comments last 24h   (conversion into seconds)
-    def comments_day(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
-    #Function to calculate the number of comments last 7 days (conversion into seconds)
-    def comments_week(self):
-        return len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
-    #Function to calculate the number of posts last 30 days (conversion into seconds)
-    def posts_month(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
-    #Function to calculate the number of posts last 7 days (conversion into seconds)
-    def posts_week(self):
-        return len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
 
 class Entry:
-    def __init__(self=None, title=None, link=None, timestamp=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
+    def __init__(self=None, title=None, link=None, timestamp_created=None, timestamp_updated=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
         self.title = title
         self.link = link
         self.homepage = homepage
         self.service = service
-        self.timestamp = timestamp
+        self.timestamp_created = timestamp_created
+        self.timestamp_updated = timestamp_updated
         self.length = length
         self.content = content
         self.cleancontent = cleancontent
         self.sanitizedcontent = sanitizedcontent
-    def printTime(self):
+    def printTime_created(self):
         try:
-            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp)
+            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp_created)
         except TypeError:
             res = ""
         return res
-    def gettime(self):
-        if self.timestamp == None:
+    def printTime_updated(self):
+        try:
+            res = strftime('%B %d,%Y at %I:%M:%S %p',self.timestamp_updated)
+        except TypeError:
+            res = ""
+        return res
+    def gettime(self): #REMINDER for future code reading: change name to gettime_created -- after Felix fixes/improves statsview to fix the bug
+        if self.timestamp_created == None:
             return time.gmtime(0)
         else:
-            return self.timestamp
-    def printShortTime(self):
+            return self.timestamp_created
+    def printShortTime_created(self):
         try:
             today = time.localtime()
-            if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] <= self.timestamp[2]:
+            if today[0] == self.timestamp_created[0] and today[1] <= self.timestamp_created[1] and today[2] <= self.timestamp_created[2]:
                 return "today"
             #if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] - 1 <= self.timestamp[2]:
             #    return "yesterday"
-            res = strftime('%b %d',self.timestamp)
+            res = strftime('%b %d',self.timestamp_created)
         except TypeError:
             res = ""
         return res
@@ -379,22 +396,26 @@ class TypeView(SimpleCheetahPage):
     cacheName = "TypeView"
     templateName = "bytype.tmpl"
 
-class ChoiceView(SimpleCheetahPage):
-    cacheName = "ChoiceView"
-    templateName = "bychoice.tmpl"
-
-# testing
+class WeeklyPicks(SimpleCheetahPage):
+       cacheName = "WeeklyPicks"
+       def generatePage(self):
+        entries = [ entry for feed in Feed.all().filter("person =","mathblogging.org") for entry in feed.entries() ]
+        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == "weekly picks", entry.tags)) > 0
+        picks = filter(has_tag, entries)
+        picks.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        template_values = { 'qf': QueryFactory(), 'picks_entries': picks, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
+        
+        path = os.path.join(os.path.dirname(__file__), 'weekly_picks.tmpl')
+        return str(Template( file = path, searchList = (template_values,) ))
+        
+        
 class RankingView(CachedPage):
     cacheName = "RankingView"
     def generatePage(self):
-        feeds_w_comments_day = [ [feed,feed.comments_day()] for feed in Feed.all() if feed.comments_day() != 0]
-        feeds_w_comments_week = [ [feed,feed.comments_week()] for feed in Feed.all() if feed.comments_week() != 0]
-        feeds_w_comments_day.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_comments_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_posts_week = [ [feed,feed.posts_week()] for feed in Feed.all().filter("type !=","community") if feed.posts_week() != 0]
-        feeds_w_posts_month = [ [feed,feed.posts_month()] for feed in Feed.all().filter("type !=","community") if feed.posts_month() != 0]
-        feeds_w_posts_week.sort( lambda x,y: - cmp(x[1],y[1]) )
-        feeds_w_posts_month.sort( lambda x,y: - cmp(x[1],y[1]) )
+        feeds_w_comments_day = db.GqlQuery("SELECT * FROM Feed WHERE comments_day != 0 ORDER BY comments_day DESC").fetch(1000)
+        feeds_w_comments_week = db.GqlQuery("SELECT * FROM Feed WHERE comments_week != 0 ORDER BY comments_week DESC").fetch(1000)
+        feeds_w_posts_week = db.GqlQuery("SELECT * FROM Feed WHERE posts_week != 0 ORDER BY posts_week DESC").fetch(1000)
+        feeds_w_posts_month = db.GqlQuery("SELECT * FROM Feed WHERE posts_month != 0 ORDER BY posts_month DESC").fetch(1000)
         template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
             
         path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
@@ -405,7 +426,7 @@ class DateView(CachedPage):
     cacheName = "DateView"
     def generatePage(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","institution").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
@@ -414,7 +435,7 @@ class DateView(CachedPage):
 class DateResearchView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'byresearchdate.tmpl')
@@ -423,7 +444,7 @@ class DateResearchView(webapp.RequestHandler):
 class DateGroupView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bygroupdate.tmpl')
@@ -432,7 +453,11 @@ class DateGroupView(webapp.RequestHandler):
 class DateEducatorView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
+<<<<<<< HEAD
         all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+=======
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+>>>>>>> 3b736b000c31c13fa30d3fb38d4803cdb1c8baf9
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'byeducatordate.tmpl')
@@ -441,7 +466,7 @@ class DateEducatorView(webapp.RequestHandler):
 class TagsView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'bytags.tmpl')
@@ -452,7 +477,7 @@ class PlanetMath(webapp.RequestHandler):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower().find("math") == 0, entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math[0:20], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'planetmath.tmpl')
@@ -463,7 +488,7 @@ class PlanetMO(webapp.RequestHandler):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
@@ -474,7 +499,7 @@ class PlanetMOfeed(webapp.RequestHandler):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
         entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
@@ -493,7 +518,7 @@ class CsvView(webapp.RequestHandler):
 class SearchView(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'search.tmpl')
@@ -502,7 +527,7 @@ class SearchView(webapp.RequestHandler):
 class CSEConfig(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
@@ -512,8 +537,8 @@ class CSEConfig(webapp.RequestHandler):
 class FeedHandlerBase(CachedPage):
     def generatePage(self):
         all_entries = [ entry for feed in self.feeds() for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header, }
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
@@ -576,9 +601,9 @@ class FetchWorker(webapp.RequestHandler):
                     feed.restore_cache()
             self.response.set_status(200)
             logging.info("FetchWorker done: " + url)
-        except Exception:
+        except Exception,e:
             self.response.set_status(200)
-            logging.warning("FetchWorker failed: " + url)
+            logging.warning("FetchWorker failed: " + url + "\n" + str(e))
 
 class FetchAllWorker(webapp.RequestHandler):
     def get(self):
@@ -605,7 +630,7 @@ class RebootCommand(webapp.RequestHandler):
 class ClearPageCacheCommand(webapp.RequestHandler):
     def get(self):
         logging.info("Clear Page Cache")
-        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","ChoiceView","DateView","RankingView"])
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","WeeklyPicks","DateView","RankingView"])
         self.response.set_status(200)
         
 class InitDatabase(webapp.RequestHandler):
@@ -616,8 +641,7 @@ class InitDatabase(webapp.RequestHandler):
             feed.homepage = "http://peter.krautzberger.info"
             feed.title = "thelazyscience"
             feed.person = "Peter Krautzberger"
-            feed.subject = ["math.LO"]
-            feed.type = "students"
+            feed.type = "research"
             feed.priority = 1
             feed.favicon = "http://www.mathblogging.org/content/favicon.ico"
             feed.comments = "http://thelazyscience.disqus.com/latest.rss"
@@ -630,7 +654,7 @@ class PlanetTag(webapp.RequestHandler):
         tagname = self.request.get('content')
         has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
         entries_tagged = filter(has_tag, all_entries)
-        entries_tagged.sort( lambda a,b: - cmp(a.timestamp,b.timestamp) )
+        entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
         all_tags = list(set(all_tag))
         common_tags = counter.Counter(all_tag).most_common(100)
@@ -646,7 +670,7 @@ def main():
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', TypeView),
-                                        ('/bychoice', ChoiceView),
+                                        ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateResearchView),
                                         ('/bygroupdate', DateGroupView),
