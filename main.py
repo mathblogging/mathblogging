@@ -90,6 +90,8 @@ menu = """
   </li>
   <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
   </li>     
+  <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
+  </li>     
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
