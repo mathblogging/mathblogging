@@ -90,8 +90,8 @@ menu = """
   </li>
   <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
   </li>     
-  <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
-  </li>     
+  <!-- <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
+  </li> -->     
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
@@ -399,7 +399,7 @@ class TypeView(SimpleCheetahPage):
 class WeeklyPicks(SimpleCheetahPage):
        cacheName = "WeeklyPicks"
        def generatePage(self):
-        entries = [ entry for feed in Feed.all().filter("person =","mathblogging.org") for entry in feed.entries() ]
+        entries = [ entry for feed in Feed.all().filter("person =","Mathblogging.org") for entry in feed.entries() ]
         has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == "weekly picks", entry.tags)) > 0
         picks = filter(has_tag, entries)
         picks.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
@@ -648,7 +648,7 @@ class PlanetTag(webapp.RequestHandler):
     def get(self):
         all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
         tagname = self.request.get('content')
-        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
+        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname.lower(), entry.tags)) > 0
         entries_tagged = filter(has_tag, all_entries)
         entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
