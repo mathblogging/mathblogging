@@ -5,7 +5,7 @@
  <link href="http://www.mathblogging.org/feed" rel="self"/>
  <link href="http://www.mathblogging.org/"/>
  <updated>2010-11-10T21:50:23-05:00</updated>
- <id>Mathblogging.org</id>
+ <id>http://www.mathblogging.org/</id>
  <author>
    <name>mathblogging.org</name>
    <email>mathblogging.network@gmail.com</email>
@@ -18,14 +18,14 @@
  <entry>
    <title> [[<%=entry.service%>]] <%=entry.title%> </title>
    <author>
-      <name><%=entry.service%>  </name>
-      <link><a href="$entry.homepage" title="<%=entry.service%>"><%=entry.service%></a></link>
+      <name><%=entry.service%> </name>
+      <uri><%=entry.homepage%></uri>
    </author>
 
    <link href="$entry.link"/>
-   <published> <%=entry.printTime_created()%></published>
-   <updated><%=entry.printTime_updated()%></updated>
-   <id><%=entry.service%> <%=entry.printTime_created()%> <%=entry.title%></id>
+   <published><%=entry.printTime_created_rfc3339()%></published>
+   <updated><%=entry.printTime_updated_rfc3339()%></updated>
+   <id><%=entry.link%></id>
    <content type="html"> Length: approx <%=entry.length/5%> words. </content>
  </entry>
  #end for
