@@ -69,8 +69,10 @@ $disqus
       var word_list = [
 #end raw
 
-#for $tag in $commontags
-          {text: "<%= tag[0] %>", weight: <%= tag[1] %>, url: "/planettag?content=<%= tag[0] %>"},
+#for $tag in $commontags 
+    #if $tag[0] != "Uncategorized" 
+        {text: "<%= tag[0] %>", weight: <%= tag[1] %>, url: "/planettag?content=<%= tag[0] %>"},#
+    #end if
 #end for
 #raw
       ];
