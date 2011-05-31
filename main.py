@@ -661,15 +661,27 @@ class InitDatabase(webapp.RequestHandler):
         
 class PlanetTag(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        all_entries = False
         tagname = self.request.get('content')
-        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname.lower(), entry.tags)) > 0
-        entries_tagged = filter(has_tag, all_entries)
-        entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
-        all_tags = list(set(all_tag))
-        common_tags = counter.Counter(all_tag).most_common(100)
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'alltags': all_tags, 'commontags': common_tags}
+        logging.info("PlanetTag: tagname '" + tagname + "'")
+        entries_tagged = []
+        if tagname != "":
+            if not all_entries:
+                all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+            logging.info("PlanetTag: gathering entries for tag " + tagname)
+            has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname.lower(), entry.tags)) > 0
+            entries_tagged = filter(has_tag, all_entries)
+            entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        memcachekey = "PlanetTag: tag list"
+        if not memcache.get(memcachekey):
+            if not all_entries:
+                all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+            logging.info("PlanetTag: generating tag list")
+            all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
+            all_tags = list(set(all_tag))
+            common_tags = counter.Counter(all_tag).most_common(100)
+            memcache.set(memcachekey, common_tags, 3000)
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'commontags': memcache.get(memcachekey) }
     
         path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
