@@ -90,11 +90,13 @@ menu = """
   </li>
   <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
   </li>     
+  <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
+  </li>
   <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
   </li>
-  <li><h2><a href="https://mathblogging.wordpress.com/" title="Developer Blog">Blog</a></h2>
+  <li><h2><a href="https://mathblogging.wordpress.com/" title="About us">About us</a></h2>
   </li>
   <li><h2><a href="/" title="Search">Search</a></h2>
   </li>
@@ -286,8 +288,8 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = html_escape(self.title)
-                        x.title = html_escape(entry['title'])
+                        x.service = self.title
+                        x.title = entry['title']
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.homepage = self.homepage
@@ -299,8 +301,11 @@ class Feed(db.Model):
                         try:
                             x.timestamp_created = entry.published_parsed
                         except AttributeError:
-                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                            x.timestamp_created = time.gmtime(0)
+                            try:
+                                x.timestamp_created = entry.updated_parsed
+                            except AttributeError:
+                                #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                                x.timestamp_created = time.gmtime(0)
                         comments_updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
@@ -412,7 +417,7 @@ class TypeView(SimpleCheetahPage):
 class WeeklyPicks(SimpleCheetahPage):
        cacheName = "WeeklyPicks"
        def generatePage(self):
-        entries = [ entry for feed in Feed.all().filter("person =","mathblogging.org") for entry in feed.entries() ]
+        entries = [ entry for feed in Feed.all().filter("person =","Mathblogging.org") for entry in feed.entries() ]
         has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == "weekly picks", entry.tags)) > 0
         picks = filter(has_tag, entries)
         picks.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
@@ -659,15 +664,27 @@ class InitDatabase(webapp.RequestHandler):
         
 class PlanetTag(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+        all_entries = False
         tagname = self.request.get('content')
-        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname, entry.tags)) > 0
-        entries_tagged = filter(has_tag, all_entries)
-        entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
-        all_tags = list(set(all_tag))
-        common_tags = counter.Counter(all_tag).most_common(100)
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'alltags': all_tags, 'commontags': common_tags}
+        logging.info("PlanetTag: tagname '" + tagname + "'")
+        entries_tagged = []
+        if tagname != "":
+            if not all_entries:
+                all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+            logging.info("PlanetTag: gathering entries for tag " + tagname)
+            has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname.lower(), entry.tags)) > 0
+            entries_tagged = filter(has_tag, all_entries)
+            entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        memcachekey = "PlanetTag: tag list"
+        if not memcache.get(memcachekey):
+            if not all_entries:
+                all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
+            logging.info("PlanetTag: generating tag list")
+            all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
+            all_tags = list(set(all_tag))
+            common_tags = counter.Counter(all_tag).most_common(100)
+            memcache.set(memcachekey, common_tags, 3000)
+        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'commontags': memcache.get(memcachekey) }
     
         path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
