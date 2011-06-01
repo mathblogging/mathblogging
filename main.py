@@ -288,8 +288,8 @@ class Feed(db.Model):
                 for entry in feed['entries']:
                     try:
                         x = Entry()
-                        x.service = html_escape(self.title)
-                        x.title = html_escape(entry['title'])
+                        x.service = self.title
+                        x.title = entry['title']
                         x.link = html_escape(entry['link'])
                         x.length = len( get_feedparser_entry_content(entry) )
                         x.homepage = self.homepage
@@ -301,8 +301,11 @@ class Feed(db.Model):
                         try:
                             x.timestamp_created = entry.published_parsed
                         except AttributeError:
-                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                            x.timestamp_created = time.gmtime(0)
+                            try:
+                                x.timestamp_created = entry.updated_parsed
+                            except AttributeError:
+                                #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
+                                x.timestamp_created = time.gmtime(0)
                         comments_updates.append(x)
                     except Exception, e:
                         logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
