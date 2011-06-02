@@ -427,8 +427,8 @@ class WeeklyPicks(SimpleCheetahPage):
         return str(Template( file = path, searchList = (template_values,) ))
         
         
-class RankingView(CachedPage):
-    cacheName = "RankingView"
+class StatsView(CachedPage):
+    cacheName = "StatsView"
     def generatePage(self):
         feeds_w_comments_day = db.GqlQuery("SELECT * FROM Feed WHERE comments_day != 0 ORDER BY comments_day DESC").fetch(1000)
         feeds_w_comments_week = db.GqlQuery("SELECT * FROM Feed WHERE comments_week != 0 ORDER BY comments_week DESC").fetch(1000)
@@ -436,7 +436,7 @@ class RankingView(CachedPage):
         feeds_w_posts_month = db.GqlQuery("SELECT * FROM Feed WHERE posts_month != 0 ORDER BY posts_month DESC").fetch(1000)
         template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
             
-        path = os.path.join(os.path.dirname(__file__), 'byranking.tmpl')
+        path = os.path.join(os.path.dirname(__file__), 'bystats.tmpl')
         renderedString = str(Template( file = path, searchList = (template_values,) ))
         return renderedString
 
@@ -644,7 +644,7 @@ class RebootCommand(webapp.RequestHandler):
 class ClearPageCacheCommand(webapp.RequestHandler):
     def get(self):
         logging.info("Clear Page Cache")
-        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","WeeklyPicks","DateView","RankingView"])
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","WeeklyPicks","DateView","StatsView"])
         self.response.set_status(200)
         
 class InitDatabase(webapp.RequestHandler):
@@ -702,7 +702,7 @@ def main():
                                         ('/bygroupdate', DateGroupView),
                                         ('/byeducatordate', DateEducatorView),
                                         ('/bytags', TagsView),
-                                        ('/bystats', RankingView),
+                                        ('/bystats', StatsView),
                                         ('/planetmath', PlanetMath),
                                         ('/planetmo', PlanetMO),
                                         ('/planetmo-feed', PlanetMOfeed),
