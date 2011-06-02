@@ -456,7 +456,7 @@ class DateResearchView(webapp.RequestHandler):
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
-        path = os.path.join(os.path.dirname(__file__), 'byresearchdate.tmpl')
+        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateGroupView(webapp.RequestHandler):
@@ -465,7 +465,7 @@ class DateGroupView(webapp.RequestHandler):
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
-        path = os.path.join(os.path.dirname(__file__), 'bygroupdate.tmpl')
+        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateEducatorView(webapp.RequestHandler):
@@ -474,7 +474,7 @@ class DateEducatorView(webapp.RequestHandler):
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
-        path = os.path.join(os.path.dirname(__file__), 'byeducatordate.tmpl')
+        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class TagsView(webapp.RequestHandler):

@@ -77,6 +77,7 @@ $menu
   <tbody>
   #for $feed in $posts_week
   #if feed.type != 'institution'
+  #if feed.type != 'community'
   <tr>
     <td valign="bottom" class="datecolumn">
       <div>
@@ -89,6 +90,7 @@ $menu
       </div>
     </td>
   </tr>
+  #end if
   #end if
   #end for
   </tbody>
@@ -106,7 +108,8 @@ $menu
   </thead>
   <tbody>
   #for $feed in $posts_month
-  #if feed.type != 'institution'
+  #if feed.type != 'institution' 
+  #if feed.type != 'community'
   <tr>
     <td valign="bottom" class="datecolumn">
       <div>
@@ -119,6 +122,7 @@ $menu
       </div>
     </td>
   </tr>
+  #end if
   #end if
   #end for
   </tbody>
