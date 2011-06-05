@@ -126,7 +126,7 @@ h2 {
     border-right: 1px solid black;
     border-bottom: 1px solid black;
     padding: 0px;
-    width: 16ex;
+    width: 21ex;
     z-index: 500;
 }
 
@@ -257,7 +257,7 @@ div#menu ul ul ul li:hover ul
 list-style-type:none;
 margin:10px;
 padding-bottom:5ex;
-width:900px;
+width:500px;
 }
 .tocbox li a
 {

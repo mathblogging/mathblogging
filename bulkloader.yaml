@@ -51,11 +51,6 @@ transformers:
       # Type: Integer Stats: 128 properties of this type in this kind.
       import_transform: transform.none_if_empty(int)
 
-    - property: subject
-      external_name: subject
-      # Type: String Stats: 128 properties of this type in this kind.
-      import_transform: eval
-
     - property: title
       external_name: title
       # Type: String Stats: 128 properties of this type in this kind.
@@ -64,8 +59,12 @@ transformers:
       external_name: listtitle
       # Type: String Stats: 128 properties of this type in this kind.
 
-    - property: type
-      external_name: type
+    - property: category
+      external_name: category
+      # Type: String Stats: 128 properties of this type in this kind.
+
+    - property: language
+      external_name: language
       # Type: String Stats: 128 properties of this type in this kind.
 
     - property: url

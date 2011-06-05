@@ -1,3 +1,8 @@
+#TODO: 
+#main.py : feeds auf neue categories umstellen
+#templates auf categories checken
+#JOURNALS!!
+
 # Mathblogging is a simple blog aggregator.
 # Copyright (C) 2010 Felix Breuer, Frederik von Heymann, Peter Krautzberger
 #
@@ -78,9 +83,9 @@ menu = """
   <ul>
     <li><h2><a href="/byresearchdate" title="Recent posts in Research">Researchers</a></h2>
     </li>
-    <li><h2><a href="/bygroupdate" title="Recent posts in Groups">Groups</a></h2>
+    <li><h2><a href="/byartvishisdate" title="Recent posts in Art,Visual,History">Art/Visual/History</a></h2>
     </li>
-    <li><h2><a href="/byeducatordate" title="Recent posts from Educators">Educators</a></h2>
+    <li><h2><a href="/byteacherdate" title="Recent posts from Teachers">Teachers</a></h2>
     </li>
   </ul>
   </li>
@@ -172,7 +177,9 @@ class Feed(db.Model):
     title = db.StringProperty()
     listtitle = db.StringProperty()
     person = db.StringProperty()
-    type = db.StringProperty() # can be 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
+    category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution  
+    # was: 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
+    language = db.StringProperty()
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
     comments = db.StringProperty()
@@ -251,7 +258,7 @@ class Feed(db.Model):
                 logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
                     
         return updates
-    def cse_homepage(self):
+    def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
         return add_slash(strip_http(self.homepage))
     def top_entries(self):
         return self.entries()[0:10]
@@ -410,9 +417,9 @@ class FeedsPage(SimpleCheetahPage):
     cacheName = "FeedsPage"
     templateName = "feeds.tmpl"
 
-class TypeView(SimpleCheetahPage):
-    cacheName = "TypeView"
-    templateName = "bytype.tmpl"
+class CategoryView(SimpleCheetahPage):
+    cacheName = "CategoryView"
+    templateName = "bycategory.tmpl"
 
 class WeeklyPicks(SimpleCheetahPage):
        cacheName = "WeeklyPicks"
@@ -443,48 +450,54 @@ class StatsView(CachedPage):
 class DateView(CachedPage):
     cacheName = "DateView"
     def generatePage(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","institution").filter("type !=","community") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("category !=","institution").filter("category !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
 
         
-class DateResearchView(webapp.RequestHandler):
+class DateResearchView(CachedPage):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","research") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("category =","pure") for entry in feed.entries() ]
+        applied_entries = [ entry for feed in Feed.all().filter("category =","applied") for entry in feed.entries() ]
+        all_entries.extend(applied_entries)
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class DateGroupView(webapp.RequestHandler):
+class DateHisArtVisView(CachedPage):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","groups") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("category =","visual") for entry in feed.entries() ]
+        history_entries = [ entry for feed in Feed.all().filter("category =","history") for entry in feed.entries() ]
+        visual_entries = [ entry for feed in Feed.all().filter("category =","art") for entry in feed.entries() ]
+        all_entries.extend(visual_entries)
+        all_entries.extend(history_entries)
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-class DateEducatorView(webapp.RequestHandler):
+class DateTeacherView(CachedPage):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type =","educator") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("category =","teacher") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class TagsView(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+# outdated
+#class TagsView(webapp.RequestHandler):
+    #def get(self):
+        #all_entries = [ entry for feed in Feed.all().filter("category !=","micro").filter("category !=","community") for entry in feed.entries() ]
+        #all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        #template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
-        path = os.path.join(os.path.dirname(__file__), 'bytags.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        #path = os.path.join(os.path.dirname(__file__), 'bytags.tmpl')
+        #self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class PlanetMath(webapp.RequestHandler):
     def get(self):
@@ -519,7 +532,7 @@ class PlanetMOfeed(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-
+# Database output
 class CsvView(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
@@ -528,19 +541,20 @@ class CsvView(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'text/csv'
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-
-class SearchView(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+# deprecated
+#class SearchView(webapp.RequestHandler):
+    #def get(self):
+        #all_entries = [ entry for feed in Feed.all().filter("category !=","micro").filter("category !=","community") for entry in feed.entries() ]
+        #all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        #template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
-        path = os.path.join(os.path.dirname(__file__), 'search.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+        #path = os.path.join(os.path.dirname(__file__), 'search.tmpl')
+        #self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
+# google custom search engine
 class CSEConfig(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("type !=","micro").filter("type !=","community") for entry in feed.entries() ]
+        all_entries = [ entry for feed in Feed.all().filter("category !=","community") for entry in feed.entries() ]
         all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
         template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
@@ -562,45 +576,96 @@ class FeedHandlerAll(FeedHandlerBase):
     def feeds(self):
         return Feed.all()
 
-class FeedHandlerResearcher(FeedHandlerBase):
-    cacheName = "FeedResearcher"
-    def feeds(self):
-        return Feed.all().filter("type =","research")
+class FeedHandlerResearchers(CachedPage):
+    cacheName = "FeedResearchers"
+    def get(self):
+        all_entries = [ entry for feed in Feed.all().filter("category =","pure") for entry in feed.entries() ]
+        applied_entries = [ entry for feed in Feed.all().filter("category =","applied") for entry in feed.entries() ]
+        history_entries = [ entry for feed in Feed.all().filter("category =","history") for entry in feed.entries() ]
+        all_entries.extend(applied_entries)
+        all_entries.extend(history_entries)
+        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus':  disqus, 'header': header }
 
-class FeedHandlerGroups(FeedHandlerBase):
-    cacheName = "FeedGroups"
-    def feeds(self):
-        return Feed.all().filter("type =","groups")
+        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))    
 
-class FeedHandlerEducator(FeedHandlerBase):
-    cacheName = "FeedEducator"
+class FeedHandlerPure(FeedHandlerBase):
+    cacheName = "FeedPure"
     def feeds(self):
-        return Feed.all().filter("type =","educator")
+        return Feed.all().filter("category =","pure")
+
+class FeedHandlerApplied(FeedHandlerBase):
+    cacheName = "FeedApplied"
+    def feeds(self):
+        return Feed.all().filter("category =","applied")
+
+class FeedHandlerHistory(FeedHandlerBase):
+    cacheName = "FeedHistory"
+    def feeds(self):
+        return Feed.all().filter("category =","history")
+
+class FeedHandlerVisual(FeedHandlerBase):
+    cacheName = "FeedVisual"
+    def feeds(self):
+        return Feed.all().filter("category =","visual")
+
+class FeedHandlerArt(FeedHandlerBase):
+    cacheName = "FeedArt"
+    def feeds(self):
+        return Feed.all().filter("category =","art")
+
+class FeedHandlerTeachers(FeedHandlerBase):
+    cacheName = "FeedTeachers"
+    def feeds(self):
+        return Feed.all().filter("category =","teacher")
+
+class FeedHandlerFun(FeedHandlerBase):
+    cacheName = "FeedFun"
+    def feeds(self):
+        return Feed.all().filter("category =","fun")
+
+class FeedHandlerGeneral(FeedHandlerBase):
+    cacheName = "FeedGeneral"
+    def feeds(self):
+        return Feed.all().filter("category =","general")
+
+class FeedHandlerJournals(FeedHandlerBase):
+    cacheName = "FeedJournals"
+    def feeds(self):
+        return Feed.all().filter("category =","journal")
 
 class FeedHandlerJournalism(FeedHandlerBase):
     cacheName = "FeedJournalism"
     def feeds(self):
-        return Feed.all().filter("type =","journalism")
+        return Feed.all().filter("category =","journalism")
     
 class FeedHandlerInstitutions(FeedHandlerBase):
     cacheName = "FeedInstitutions"
     def feeds(self):
-        return Feed.all().filter("type =","institution")
+        return Feed.all().filter("category =","institution")
 
 class FeedHandlerCommunities(FeedHandlerBase):
     cacheName = "FeedCommunities"
     def feeds(self):
-        return Feed.all().filter("type =","community")
+        return Feed.all().filter("category =","community")
+
+class FeedHandlerCommercial(FeedHandlerBase):
+    cacheName = "FeedCommercial"
+    def feeds(self):
+        return Feed.all().filter("category =","commercial")
+
 
 class FeedHandlerPeople(FeedHandlerBase):
     cacheName = "FeedPeople"
     def feeds(self):
-        return Feed.all().filter("type !=","community").filter("type !=","institution")
+        return Feed.all().filter("category !=","community").filter("category !=","institution").filter("category !=","journals").filter("category !=","commercial")
 
-class FeedHandlerAcademics(FeedHandlerBase):
-    cacheName = "FeedAcademics"
-    def feeds(self):
-        return Feed.all().filter("type !=","community").filter("type !=","educator").filter("type !=","journalism")       
+# replaced by researcher
+#class FeedHandlerAcademics(FeedHandlerBase):
+    #cacheName = "FeedAcademics"
+    #def feeds(self):
+        #return Feed.all().filter("category !=","community").filter("category !=","educator").filter("category !=","journalism")       
     
     
 
@@ -644,7 +709,7 @@ class RebootCommand(webapp.RequestHandler):
 class ClearPageCacheCommand(webapp.RequestHandler):
     def get(self):
         logging.info("Clear Page Cache")
-        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","TypeView","WeeklyPicks","DateView","StatsView"])
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","CategoryView","WeeklyPicks","DateView","StatsView"])
         self.response.set_status(200)
         
 class InitDatabase(webapp.RequestHandler):
@@ -655,7 +720,8 @@ class InitDatabase(webapp.RequestHandler):
             feed.homepage = "http://peter.krautzberger.info"
             feed.title = "thelazyscience"
             feed.person = "Peter Krautzberger"
-            feed.type = "research"
+            feed.category = "pure"
+            feed.language = "english"
             feed.priority = 1
             feed.favicon = "http://www.mathblogging.org/content/favicon.ico"
             feed.comments = "http://thelazyscience.disqus.com/latest.rss"
@@ -695,19 +761,19 @@ def main():
                                        [('/', StartPage),
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
-                                        ('/bytype', TypeView),
+                                        ('/bytype', CategoryView),
                                         ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateResearchView),
-                                        ('/bygroupdate', DateGroupView),
-                                        ('/byeducatordate', DateEducatorView),
-                                        ('/bytags', TagsView),
+                                        ('/byartvishisdate', DateHisArtVisView),
+                                        ('/byteacherdate', DateTeacherView),
+                                        #('/bytags', TagsView), #outdated
                                         ('/bystats', StatsView),
                                         ('/planetmath', PlanetMath),
                                         ('/planetmo', PlanetMO),
                                         ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
-                                        ('/search', SearchView),
+                                        #('/search', SearchView),  #outdated
                                         ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),
                                         ('/fetchall', FetchAllWorker),
@@ -715,17 +781,28 @@ def main():
                                         ('/reboot', RebootCommand),
                                         ('/clearpagecache', ClearPageCacheCommand),
                                         ('/init', InitDatabase),
-                                        ('/feed_all', FeedHandlerAll),
-                                        ('/feed_large', FeedHandlerAll),
-                                        ('/feed_researcher', FeedHandlerResearcher),
-                                        ('/feed_groups', FeedHandlerGroups),
-                                        ('/feed_educator', FeedHandlerEducator),
+                                        ('/feed_pure', FeedHandlerPure),
+                                        ('/feed_applied', FeedHandlerApplied),
+                                        ('/feed_history', FeedHandlerHistory),
+                                        ('/feed_art', FeedHandlerArt),
+                                        ('/feed_fun', FeedHandlerFun),
+                                        ('/feed_general', FeedHandlerGeneral),
+                                        ('/feed_journals', FeedHandlerJournals),
+                                        ('/feed_teachers', FeedHandlerTeachers),
+                                        ('/feed_visual', FeedHandlerVisual),
                                         ('/feed_journalism', FeedHandlerJournalism),
-                                        ('/feed_institution', FeedHandlerInstitutions),
-                                        ('/feed_people', FeedHandlerPeople),
-                                        ('/feed_small', FeedHandlerPeople),
-                                        ('/feed_academics', FeedHandlerAcademics),
+                                        ('/feed_institutions', FeedHandlerInstitutions),
                                         ('/feed_communities', FeedHandlerCommunities),
+                                        ('/feed_commercial', FeedHandlerCommercial),
+                                        ('/feed_all', FeedHandlerAll),
+                                        ('/feed_researchers', FeedHandlerResearchers),
+                                        ('/feed_people', FeedHandlerPeople),
+                                        ('/feed_large', FeedHandlerAll), # left for transition
+                                        ('/feed_groups', FeedHandlerResearchers),# left for transition
+                                        ('/feed_educator', FeedHandlerTeachers), # left for transition
+                                        ('/feed_small', FeedHandlerPeople), # left for transistion
+                                        ('/feed_academics', FeedHandlerResearchers), # left for transition
+                                        ('/feed_institution', FeedHandlerInstitutions),
                                         ('/planettag', PlanetTag)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
