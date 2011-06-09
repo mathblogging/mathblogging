@@ -541,6 +541,16 @@ class CsvView(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'text/csv'
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
+# Database OPML output
+class OPMLView(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
+    
+        path = os.path.join(os.path.dirname(__file__), 'opml.tmpl')
+        self.response.headers['Content-Type'] = 'text/xml'
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+
 # deprecated
 #class SearchView(webapp.RequestHandler):
     #def get(self):
@@ -773,6 +783,7 @@ def main():
                                         ('/planetmo', PlanetMO),
                                         ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
+                                        ('/database-opml.xml', OPMLView),
                                         #('/search', SearchView),  #outdated
                                         ('/cse-config', CSEConfig),
                                         ('/fetchallsync', FetchAllSyncWorker),
