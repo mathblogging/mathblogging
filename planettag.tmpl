@@ -76,10 +76,10 @@ $disqus
 #end for
 #raw
       ];
-      $(document).ready(function() {
+      window.onload = function() {
         // Call jQCloud on a jQuery object passing the word list as the first argument. Chainability of methods is maintained.
         $("#tagcloud").jQCloud(word_list);
-      });
+      };
     </script>
 #end raw
 
