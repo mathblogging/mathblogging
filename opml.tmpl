@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+    <head>
+        <title>Mathblogging.org Database export to OPML</title>
+    </head>
+    <body>
+
+        <outline title="Mathblogging.org" text="Mathblogging.org">
+
+#for $feed in $qf.get().order("category")
+
+            <outline text="<%=feed.title%>" title="<%=feed.title%>" type="rss"
+                xmlUrl="<%=feed.url%>" htmlUrl="<%=feed.homepage%>"/>
+#end for
+        </outline>
+
+    </body>
+</opml>
