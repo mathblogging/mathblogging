@@ -28,7 +28,7 @@ import feedparser
 import datetime
 import time
 import logging
-import counter
+import counter # for PlaneTAG -- collections.Counter is in Python 2.7 -- this is from http://code.activestate.com/recipes/576611/ 
 
 from operator import attrgetter
 from time import strftime, strptime, gmtime
@@ -421,6 +421,11 @@ class CategoryView(SimpleCheetahPage):
     cacheName = "CategoryView"
     templateName = "bycategory.tmpl"
 
+class CategoryGridView(SimpleCheetahPage):
+    cacheName = "CategoryGridView"
+    templateName = "grid.tmpl"
+
+
 class WeeklyPicks(SimpleCheetahPage):
        cacheName = "WeeklyPicks"
        def generatePage(self):
@@ -756,9 +761,9 @@ class PlanetTag(webapp.RequestHandler):
             if not all_entries:
                 all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
             logging.info("PlanetTag: generating tag list")
-            all_tag = [ tag.term for entry in all_entries for tag in entry.tags ]
+            all_tag = [ tag.term.capitalize() for entry in all_entries for tag in entry.tags ]
             all_tags = list(set(all_tag))
-            common_tags = counter.Counter(all_tag).most_common(100)
+            common_tags = counter.Counter(all_tag).most_common(200)
             memcache.set(memcachekey, common_tags, 3000)
         template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'commontags': memcache.get(memcachekey) }
     
@@ -772,6 +777,7 @@ def main():
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),
+                                        ('/grid', CategoryGridView),
                                         ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateResearchView),
