@@ -36,8 +36,8 @@ transformers:
     - property: homepage
       external_name: homepage
 
-    - property: comments
-      external_name: comments
+    - property: comments_url
+      external_name: comments_url
 
     - property: favicon
       external_name: favicon
@@ -67,7 +67,7 @@ transformers:
       external_name: language
       # Type: String Stats: 128 properties of this type in this kind.
 
-    - property: url
-      external_name: url
+    - property: posts_url
+      external_name: posts_url
       # Type: String Stats: 128 properties of this type in this kind.
 
