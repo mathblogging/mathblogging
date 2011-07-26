@@ -9,7 +9,7 @@ header = """
     <title>Mathblogging.org</title>
     <script type="text/javascript" src="/content/jquery-1.5.2.min.js"></script>         
     <link rel="stylesheet" type="text/css" href="/content/jqcloud.css" />
-    <script type="text/javascript" src="/content/jqcloud-0.1.8.js"></script>
+    <script type="text/javascript" src="/content/jqcloud-0.2.1.js"></script>
   </head>
   <body>
     <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>

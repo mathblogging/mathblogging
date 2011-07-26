@@ -28,7 +28,6 @@ import feedparser
 import datetime
 import time
 import logging
-import counter
 import string
 
 from operator import attrgetter
@@ -122,10 +121,14 @@ class Feed(db.Model):
         self.update_stats()
     def update_stats(self):
         # calculate stats
-        self.comments_day = Comment.all().filter("service=",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(1)).count()
-        self.comments_week = Comment.all().filter("service=",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
-        self.posts_week = Post.all().filter("service=",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
-        self.posts_month = Post.all().filter("service=",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(30)).count()
+        self.comments_day = Comment.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(1)).count()
+        self.comments_week = Comment.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
+        self.posts_week = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
+        self.posts_month = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(30)).count()
+        #self.comments_day = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(1)).count()
+        #self.comments_week = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
+        #self.posts_week = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
+        #self.posts_month = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(30)).count()
         logging.info("Feed " + self.title + " has stats " + str(self.comments_day) + " " + str(self.comments_week) + " " + str(self.posts_month) + " " + str(self.posts_week))
         self.put()
     #def entries(self,num=None):
@@ -284,13 +287,17 @@ class GqlQueryFactory:
       return db.GqlQuery(string)
 
 class CachedPage(webapp.RequestHandler):
+    # the empty string as cacheName turns off caching
     cacheName = "default"
     cacheTime = 2700
     def get(self):
-        if not memcache.get(self.cacheName):
-            memcache.set(self.cacheName,self.generatePage(),self.cacheTime)
-        #self.response.headers['Cache-Control'] = 'public; max-age=2700;'
-        self.response.out.write(memcache.get(self.cacheName))
+        if self.cacheName == "":
+            self.response.out.write(self.generatePage())
+        else:
+            if not memcache.get(self.cacheName):
+                memcache.set(self.cacheName,self.generatePage(),self.cacheTime)
+            #self.response.headers['Cache-Control'] = 'public; max-age=2700;'
+            self.response.out.write(memcache.get(self.cacheName))
 
 class TemplatePage(CachedPage):
     def generatePage(self):
@@ -437,9 +444,9 @@ class AllWorker(webapp.RequestHandler):
     def get(self):
         logging.info("AllWorker")
         for feed in Feed.all():
-            logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
+            #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
             taskqueue.add(url="/fetch", params={'url': feed.posts_url})
-        taskqueue.add(url="/taglistworker")
+        taskqueue.add(url="/taglistworker", method="GET")
         self.response.set_status(200)
  
 class RebootCommand(webapp.RequestHandler):
@@ -449,38 +456,10 @@ class RebootCommand(webapp.RequestHandler):
         taskqueue.add(url="/allworker")
         self.response.set_status(200)
 
-
-        
-class PlanetTag(webapp.RequestHandler):
-    def get(self):
-        all_entries = False
-        tagname = self.request.get('content')
-        logging.info("PlanetTag: tagname '" + tagname + "'")
-        entries_tagged = []
-        if tagname != "":
-            entries_tagged = Post.gql("WHERE tags = :1 ORDER BY timestamp_created LIMIT 50",tagname)
-        template_values = { 'qf':  QueryFactory(), 
-                            'moentries': entries_tagged[0:50], 
-                            'commontags': memcache.get(memcachekey),
-                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname}
-    
-        path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class TagListWorker(webapp.RequestHandler):
-    def get(self):
-        try:
-            logging.info("TagListWorker: generating tag list")
-            all_tag = [ tag.term for entry in Post.all() for tag in entry.tags ]
-            common_tags = counter.Counter(all_tag)
-            memcache.set(memcachekey, common_tags, 10800)
-        except Exception, e:
-            self.response.set_status(200)
-            logging.warning("TagListWorker failed: \n" + str(e))
-
 from dateview import DateView
 from categoryview import CategoryView
 from feedhandler import *
+from planettag import *
 
 def main():
   application = webapp.WSGIApplication(

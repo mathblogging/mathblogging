@@ -16,10 +16,10 @@ handlers:
 - url: /fetch
   script: main.py
   login: admin
-- url: /fetchall
+- url: /allworker
   script: main.py
   login: admin
-- url: /fetchsync
+- url: /taglistworker
   script: main.py
   login: admin
 - url: /clearpagecache
