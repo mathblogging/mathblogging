@@ -28,7 +28,7 @@ import feedparser
 import datetime
 import time
 import logging
-import counter # for PlaneTAG -- collections.Counter is in Python 2.7 -- this is from http://code.activestate.com/recipes/576611/ 
+import string
 
 from operator import attrgetter
 from time import strftime, strptime, gmtime
@@ -37,9 +37,12 @@ from google.appengine.ext.webapp import template
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext import db
+from google.appengine.ext.db import polymodel
 from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
+
+from temp_global import *
 
 import cgi
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -57,97 +60,6 @@ def html_escape(text):
     """Produce entities within text."""
     return "".join(html_escape_table.get(c,c) for c in text)
 # end
-
-header = """
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" href="/content/site.css"/>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-    <title>Mathblogging.org</title>
-    <script type="text/javascript" src="/content/jquery-1.5.2.min.js"></script>         
-    <link rel="stylesheet" type="text/css" href="/content/jqcloud.css" />
-    <script type="text/javascript" src="/content/jqcloud-0.1.8.js"></script>
-  </head>
-  <body>
-    <h1> <a style="text-decoration:none;color:white;" href="/">Mathblogging.org <small style="color: #CCC">beta</small></a></h1>
-"""
-
-menu = """
-<!-- Top Navigation -->
-<div id="menu">
-<ul>
-  <li><h2><a href="/bydate" title="Recent posts">Posts</a></h2>
-  <ul>
-    <li><h2><a href="/byresearchdate" title="Recent posts in Research">Researchers</a></h2>
-    </li>
-    <li><h2><a href="/byartvishisdate" title="Recent posts in Art,Visual,History">Art/Visual/History</a></h2>
-    </li>
-    <li><h2><a href="/byteacherdate" title="Recent posts from Teachers">Teachers</a></h2>
-    </li>
-  </ul>
-  </li>
-  <li><h2><a href="/bytype" title="Blogs by Category">Blogs</a></h2>
-  </li>
-  <li><h2><a href="/bystats" title="Recent statistics">Stats</a></h2>
-  </li>
-  <li><h2><a href="/weekly-picks" title="Our weekly picks">Weekly Picks</a></h2>
-  </li>     
-  <li><h2><a href="/planettag" title="PlanetTAG">PlanetTAG</a></h2>
-  </li>
-  <li><h2><a href="/planetmo" title="PlanetMO">PlanetMO</a></h2>
-  </li>     
-  <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
-  </li>
-  <li><h2><a href="https://mathblogging.wordpress.com/" title="About us">About us</a></h2>
-  </li>
-  <li><h2><a href="/" title="Search">Search</a></h2>
-  </li>
-</ul>						
-</div>
-<!-- end Top Navigation -->
-"""
-
-disqus = """
-<!-- disqus code-->
-<div class="disqus">
-<hr/>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-    var disqus_shortname = 'mathblogging'; // required: replace example with your forum shortname
-
-    // The following are highly recommended additional parameters. Remove the slashes in front to use.
-    // var disqus_identifier = 'unique_dynamic_id_1234';
-    // var disqus_url = 'http://example.com/permalink-to-page.html';
-
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
-</script>
-<noscript><p>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></p></noscript>
-<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
-</div>
-<!-- end disqus code-->
-"""
-
-footer = """
-<!-- copyright footer -->
-<div class="footer">
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
-  <img alt="Creative Commons License" src="http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png"/>
-</a>
-<p>
-mathblogging.org is licensed under a <br/> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License</a>.
-</p>
-</div>
-<!-- end copyright footer -->
-"""
 
 def strip_http(str):
     if str[0:7] == "http://":
@@ -169,181 +81,161 @@ def get_feedparser_entry_content(entry):
             return entry['summary']
         except AttributeError:
             return ""
-            
+
+def feedparser_entry_to_guid(entry):
+    theid = None
+    try:
+        theid = entry.id
+    except AttributeError:
+        t = time.gmtime(0)
+        try:
+            t = entry.updated_parsed
+        except AttributeError:
+            pass
+        dt = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
+        try:
+            theid = (html_escape(entry['link']) + str(dt) + entry.title)[0:500]
+        except AttributeError:
+            pass
+    return theid
 
 class Feed(db.Model):
-    url = db.LinkProperty()
+    posts_url = db.LinkProperty()
     homepage = db.StringProperty()
     title = db.StringProperty()
     listtitle = db.StringProperty()
     person = db.StringProperty()
-    category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution  
-    # was: 'groups', 'research', 'educator', 'journalism', 'institution', 'community', ('commercial')
+    category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution journal
     language = db.StringProperty()
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
-    comments = db.StringProperty()
+    comments_url = db.StringProperty()
     comments_day = db.IntegerProperty()
     comments_week = db.IntegerProperty()
     posts_week = db.IntegerProperty()
     posts_month = db.IntegerProperty()
-    def restore_cache(self):
-        logging.info("Restoring Cache of Feed " + self.title)
-        #try: 
-        updates = self.fetch_entries()
-        memcache.set(self.url,updates,86400) # 1 day 
-        # memcache element for comment feeds. fetch_comments_entries accumulates the list, self.comments is the database object to call up later
-        comments_updates = self.fetch_comments_entries()
-        memcache.set(self.comments,comments_updates,86400) # 1 day
-        logging.info("Memcache updated successfully.")
-        self.comments_day = len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 86400 ])
-        self.comments_week = len([item for item in self.comments_entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
-        self.posts_month = len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 2592000 ])
-        self.posts_week = len([item for item in self.entries() if time.mktime(time.localtime()) - time.mktime(item.gettime()) <= 604800 ])
+    def update_database(self):
+        logging.info("Update Database for Feed: " + self.title)
+        self.fetch_feed_and_generate_entries(self.posts_url,Post)
+        self.fetch_feed_and_generate_entries(self.comments_url,Comment)
+        self.update_stats()
+    def update_stats(self):
+        # calculate stats
+        self.comments_day = Comment.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(1)).count()
+        self.comments_week = Comment.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
+        self.posts_week = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
+        self.posts_month = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(30)).count()
+        #self.comments_day = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(1)).count()
+        #self.comments_week = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
+        #self.posts_week = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
+        #self.posts_month = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(30)).count()
         logging.info("Feed " + self.title + " has stats " + str(self.comments_day) + " " + str(self.comments_week) + " " + str(self.posts_month) + " " + str(self.posts_week))
         self.put()
-    def entries(self,num=None):
-        if not memcache.get(self.url):
-            return [] # TODO: schedule a fetch-task !
-        if num == None:
-            return memcache.get(self.url)
-        result = memcache.get(self.url)
-        return result[0:num]
-    def fetch_entries(self):
+    #def entries(self,num=None):
+    #    result = [entry for entry in Post.all().filter("service=",self.title)]
+    #    return result[0:num]
+    def fetch_feed_and_generate_entries(self,url,_type):
+        if url == "":
+            return
         try:
-            result = urlfetch.fetch(self.url,deadline=10) # 10 is max deadline
+            result = urlfetch.fetch(url,deadline=10) # 10 is max deadline
         except urlfetch.DownloadError:
-            logging.warning("Downloading URL " + self.url + "failed: timeout.")
-            return []
+            logging.warning("Downloading URL " + url + "failed: timeout.")
+            return
         except urlfetch.ResponseTooLargeError:
-            logging.warning("Downloading URL " + self.url + "failed: response tooo large.")
-            return []
-        updates = []
+            logging.warning("Downloading URL " + url + "failed: response tooo large.")
+            return
+        except urlfetch.InvalidURLError:
+            logging.warning("Downloading URL " + url + "failed: invalid url.")
+            return
         if result.status_code == 200:
-            logging.info("Successfully fetched URL " + self.url)
+            logging.info("Successfully fetched URL " + url)
             try:
                 feed = feedparser.parse(result.content)
                 for entry in feed['entries']:
-                    try:
-                        x = Entry()
-                        x.service = self.title
-                        x.title = entry['title']
-                        x.link = html_escape(entry['link'])
-                        x.length = len( get_feedparser_entry_content(entry) )
-                        x.content = get_feedparser_entry_content(entry)
-                        #x.cleancontent = ' '.join(BeautifulSoup(x.content).findAll(text=True))
-                        #x.sanitizedcontent = x.content
-                        x.homepage = self.homepage
-                        try:
-                            x.tags = entry.tags
-                        except AttributeError:
-                            x.tags = [ ]
-                        try:
-                            x.timestamp_updated = entry.updated_parsed
-                        except AttributeError:
-                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                            x.timestamp_updated = time.gmtime(0)
-                        try:
-                            x.timestamp_created = entry.published_parsed
-                        except AttributeError:
-                            try:
-                                x.timestamp_created = entry.updated_parsed
-                            except AttributeError:
-                                #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                                x.timestamp_created = time.gmtime(0)
-                        updates.append(x)
-                    except Exception, e:
-                        logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
+                    _type.generate_entry(entry,feed,self) 
             except LookupError, e:
-                logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
-                    
-        return updates
+                logging.warning("There was an error parsing the feed " + url + ":" + str(e))
     def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
         return add_slash(strip_http(self.homepage))
-    def top_entries(self):
-        return self.entries()[0:10]
-    def template_top(self):
-        return {'title': self.title, 'entries': self.top_entries() }
+    #def top_entries(self):
+    #    return self.entries()[0:10]
+    #def template_top(self):
+    #    return {'title': self.title, 'entries': self.top_entries() }
     # comments_entries the abstract construct
-    def comments_entries(self,num=None):
-        if not memcache.get(self.comments):
-            return [] # TODO: schedule a fetch-task !
-        if num == None:
-            return memcache.get(self.comments)
-        result = memcache.get(self.comments)
-        return result[0:num]
-    # fetching entries from comment feeds (just like regular feed)
-    def fetch_comments_entries(self):
-        if self.comments == "":
-            return []
+    #def comments_entries(self,num=None):
+    #    if not memcache.get(self.comments):
+    #        return [] # TODO: schedule a fetch-task !
+    #    if num == None:
+    #        return memcache.get(self.comments)
+    #    result = memcache.get(self.comments)
+    #    return result[0:num]
+
+class Entry(polymodel.PolyModel):
+    title = db.TextProperty()
+    link = db.StringProperty()
+    homepage = db.StringProperty()
+    service = db.StringProperty()
+    timestamp_created = db.DateTimeProperty()
+    timestamp_updated = db.DateTimeProperty()
+    length = db.IntegerProperty()
+    content = db.TextProperty()
+    tags = db.StringListProperty()
+    category = db.StringProperty()
+    guid = db.StringProperty()
+        
+    # cls has to be one of the classes Post or Comment
+    # entry is a feedparser entry
+    # feedparser_feed is a feedparser feed
+    # database_feed is corresponding Feed object
+    @classmethod
+    def generate_entry(cls, entry, feedparser_feed, database_feed):
         try:
-            result = urlfetch.fetch(self.comments,deadline=10) # 10 is max deadline
-        except urlfetch.DownloadError:
-            logging.warning("Downloading URL " + self.comments + "failed: timeout.")
-            return []
-        except urlfetch.ResponseTooLargeError:
-            logging.warning("Downloading URL " + self.comments + "failed: response tooo large.")
-            return []
-        except urlfetch.InvalidURLError:
-            logging.warning("Downloading URL " + self.comments + "failed: invalid url.")
-            return []
-        comments_updates = []
-        if result.status_code == 200:
-            logging.info("Successfully fetched URL " + self.comments)
-            try:
-                feed = feedparser.parse(result.content)
-                for entry in feed['entries']:
-                    try:
-                        x = Entry()
-                        x.service = self.title
-                        x.title = entry['title']
-                        x.link = html_escape(entry['link'])
-                        x.length = len( get_feedparser_entry_content(entry) )
-                        x.homepage = self.homepage
-                        try:
-                            x.timestamp_updated = entry.updated_parsed
-                        except AttributeError:
-                            #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                            x.timestamp_updated = time.gmtime(0)
-                        try:
-                            x.timestamp_created = entry.published_parsed
-                        except AttributeError:
-                            try:
-                                x.timestamp_created = entry.updated_parsed
-                            except AttributeError:
-                                #x.timestamp = time.strptime("01.01.1970","%d.%m.%Y")
-                                x.timestamp_created = time.gmtime(0)
-                        comments_updates.append(x)
-                    except Exception, e:
-                        logging.warning("There was an error processing an Entry of the Feed " + self.title + ":" + str(e))        
-            except LookupError, e:
-                logging.warning("There was an error parsing the feed " + self.title + ":" + str(e))
-
-        return comments_updates
-
-class Entry:
-    def __init__(self=None, title=None, link=None, timestamp_created=None, timestamp_updated=None, service=None, homepage=None, length=0, content="", cleancontent="", sanitizedcontent=""):
-        self.title = title
-        self.link = link
-        self.homepage = homepage
-        self.service = service
-        self.timestamp_created = timestamp_created
-        self.timestamp_updated = timestamp_updated
-        self.length = length
-        self.content = content
-        self.cleancontent = cleancontent
-        self.sanitizedcontent = sanitizedcontent
+            # if entry is in database, i.e.,
+            result = cls.all().filter("service=",database_feed.title).filter("guid=",feedparser_entry_to_guid(entry)).get()
+            if result != None:
+                #   update entry attributes if changed?
+                pass
+            else:
+                #   add entry to database!
+                x = cls()
+                x.service = database_feed.title
+                x.title = entry['title']
+                x.link = html_escape(entry['link'])
+                x.length = len( get_feedparser_entry_content(entry) )
+                x.content = get_feedparser_entry_content(entry)
+                x.category = database_feed.category
+                x.homepage = database_feed.homepage
+                try:
+                    x.tags = [ string.capwords(tag.term) for tag in entry.tags ]
+                except AttributeError:
+                    x.tags = [ ]
+                t = time.gmtime(0)
+                try:
+                    t = entry.updated_parsed
+                except AttributeError:
+                    pass
+                x.timestamp_updated = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
+                try:
+                    t = entry.published_parsed
+                except AttributeError:
+                    pass
+                x.timestamp_created = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
+                x.guid = feedparser_entry_to_guid(entry)
+                x.put()
+        except Exception, e:
+            logging.warning("There was an error processing an Entry of the Feed :" + str(e))
 
     def printTime_created_rfc3339(self):
         try:
-            res = strftime('%Y-%m-%dT%H:%M:%SZ',self.timestamp_created)
+            res = self.timestamp_created.strftime('%Y-%m-%dT%H:%M:%SZ')
         except TypeError:
             res = ""
         return res
 
     def printTime_updated_rfc3339(self):
         try:
-            res = strftime('%Y-%m-%dT%H:%M:%SZ',self.timestamp_updated)
+            res = self.timestamp_updated.strftime('%Y-%m-%dT%H:%M:%SZ')
         except TypeError:
             res = ""
         return res
@@ -367,15 +259,20 @@ class Entry:
             return self.timestamp_created
     def printShortTime_created(self):
         try:
-            today = time.localtime()
-            if today[0] == self.timestamp_created[0] and today[1] <= self.timestamp_created[1] and today[2] <= self.timestamp_created[2]:
+            today = datetime.datetime.now()
+            if today.year == self.timestamp_created.year and today.month <= self.timestamp_created.month and today.day <= self.timestamp_created.day:
                 return "today"
-            #if today[0] == self.timestamp[0] and today[1] <= self.timestamp[1] and today[2] - 1 <= self.timestamp[2]:
-            #    return "yesterday"
-            res = strftime('%b %d',self.timestamp_created)
-        except TypeError:
+            res = self.timestamp_created.strftime('%b %d')
+        except TypeError, e:
+            logging.warning("problem: " + str(e))
             res = ""
         return res
+
+class Post(Entry):
+    iamapost = db.StringProperty()
+
+class Comment(Entry):
+    iamacomment = db.StringProperty()
 
 class MainPage(webapp.RequestHandler):
   def get(self):
@@ -390,13 +287,21 @@ class GqlQueryFactory:
       return db.GqlQuery(string)
 
 class CachedPage(webapp.RequestHandler):
+    # the empty string as cacheName turns off caching
     cacheName = "default"
     cacheTime = 2700
     def get(self):
-        if not memcache.get(self.cacheName):
-            memcache.set(self.cacheName,self.generatePage(),self.cacheTime)
-        #self.response.headers['Cache-Control'] = 'public; max-age=2700;'
-        self.response.out.write(memcache.get(self.cacheName))
+        if self.cacheName == "":
+            self.response.out.write(self.generatePage())
+        else:
+            if not memcache.get(self.cacheName):
+                memcache.set(self.cacheName,self.generatePage(),self.cacheTime)
+            #self.response.headers['Cache-Control'] = 'public; max-age=2700;'
+            self.response.out.write(memcache.get(self.cacheName))
+
+class TemplatePage(CachedPage):
+    def generatePage(self):
+        return header + menu + "<div class='content'>" + self.generateContent() + disqus + "</div>" + footer + "</body></html>"
 
 class SimpleCheetahPage(CachedPage):
     templateName = "default.tmpl"
@@ -417,22 +322,20 @@ class FeedsPage(SimpleCheetahPage):
     cacheName = "FeedsPage"
     templateName = "feeds.tmpl"
 
-class CategoryView(SimpleCheetahPage):
-    cacheName = "CategoryView"
-    templateName = "bycategory.tmpl"
-
-class CategoryGridView(SimpleCheetahPage):
-    cacheName = "CategoryGridView"
-    templateName = "grid.tmpl"
-
+#class CategoryView(SimpleCheetahPage):
+#    cacheName = "CategoryView"
+#    templateName = "bycategory.tmpl"
 
 class WeeklyPicks(SimpleCheetahPage):
-       cacheName = "WeeklyPicks"
-       def generatePage(self):
-        entries = [ entry for feed in Feed.all().filter("person =","Mathblogging.org") for entry in feed.entries() ]
-        has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == "weekly picks", entry.tags)) > 0
-        picks = filter(has_tag, entries)
-        picks.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
+    cacheName = "WeeklyPicks"
+    # TODO: do everything in template???
+    def generatePage(self):
+        # ############ PROBLEM SOLVED ############
+        # This is how to test list membership (even though it is counter-intuitive), see:
+        #  http://wenku.baidu.com/view/7861b3f9aef8941ea76e0562.html
+        #  http://code.google.com/p/typhoonae/issues/detail?id=40
+        # 
+        picks = Post.gql("WHERE service = 'Mathblogging.org - the Blog' AND tags = 'weekly picks' ORDER BY timestamp_created LIMIT 15")
         template_values = { 'qf': QueryFactory(), 'picks_entries': picks, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
         
         path = os.path.join(os.path.dirname(__file__), 'weekly_picks.tmpl')
@@ -441,6 +344,7 @@ class WeeklyPicks(SimpleCheetahPage):
         
 class StatsView(CachedPage):
     cacheName = "StatsView"
+    # TODO: do everything in template???
     def generatePage(self):
         feeds_w_comments_day = db.GqlQuery("SELECT * FROM Feed WHERE comments_day != 0 ORDER BY comments_day DESC").fetch(1000)
         feeds_w_comments_week = db.GqlQuery("SELECT * FROM Feed WHERE comments_week != 0 ORDER BY comments_week DESC").fetch(1000)
@@ -452,89 +356,45 @@ class StatsView(CachedPage):
         renderedString = str(Template( file = path, searchList = (template_values,) ))
         return renderedString
 
-class DateView(CachedPage):
-    cacheName = "DateView"
-    def generatePage(self):
-        all_entries = [ entry for feed in Feed.all().filter("category !=","institution").filter("category !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        return str(Template( file = path, searchList = (template_values,) ))
-
         
 class DateResearchView(CachedPage):
+    cacheName = "DateResearchView"
+    # TODO: do everything in template???
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("category =","pure") for entry in feed.entries() ]
-        applied_entries = [ entry for feed in Feed.all().filter("category =","applied") for entry in feed.entries() ]
-        all_entries.extend(applied_entries)
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 
+                            'allentries': Post.gql("WHERE category IN ['pure','applied'] ORDER BY timestamp_created LIMIT 150"), 
+                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateHisArtVisView(CachedPage):
+    cacheName = "DateHisArtVisView"
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("category =","visual") for entry in feed.entries() ]
-        history_entries = [ entry for feed in Feed.all().filter("category =","history") for entry in feed.entries() ]
-        visual_entries = [ entry for feed in Feed.all().filter("category =","art") for entry in feed.entries() ]
-        all_entries.extend(visual_entries)
-        all_entries.extend(history_entries)
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 
+                            'allentries': Post.gql("WHERE category IN ['visual','history','art'] ORDER BY timestamp_created LIMIT 150"),
+                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class DateTeacherView(CachedPage):
+    cacheName = "DateTeacherView"
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("category =","teacher") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 
+                            'allentries': Post.gql("WHERE category = 'teacher' ORDER BY timestamp_created LIMIT 150"),
+                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
 
         path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-# outdated
-#class TagsView(webapp.RequestHandler):
-    #def get(self):
-        #all_entries = [ entry for feed in Feed.all().filter("category !=","micro").filter("category !=","community") for entry in feed.entries() ]
-        #all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        #template_values = { 'qf':  QueryFactory(), 'allentries': all_entries, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        #path = os.path.join(os.path.dirname(__file__), 'bytags.tmpl')
-        #self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class PlanetMath(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower().find("math") == 0, entry.tags)) > 0
-        entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'mathentries': entries_tagged_math[0:20], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'planetmath.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 class PlanetMO(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
-        entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged_math[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
+        template_values = { 'qf':  QueryFactory(), 
+                            'moentries': Post.gql("WHERE tags IN ['mathoverflow','mo','planetmo'] ORDER BY timestamp_created LIMIT 50"), 
+                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
     
         path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class PlanetMOfeed(webapp.RequestHandler):
-    def get(self):
-        all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-        has_tag_math = lambda entry: len(filter(lambda tag: tag.term.lower() == "mathoverflow" or tag.term.lower() == "mo" or tag.term.lower() == "planetmo", entry.tags)) > 0
-        entries_tagged_math = filter(has_tag_math, all_entries)
-        entries_tagged_math.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': entries_tagged_math, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 # Database output
@@ -555,134 +415,15 @@ class OPMLView(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'text/xml'
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-
-# deprecated
-#class SearchView(webapp.RequestHandler):
-    #def get(self):
-        #all_entries = [ entry for feed in Feed.all().filter("category !=","micro").filter("category !=","community") for entry in feed.entries() ]
-        #all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        #template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        #path = os.path.join(os.path.dirname(__file__), 'search.tmpl')
-        #self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
 # google custom search engine
 class CSEConfig(webapp.RequestHandler):
     def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("category !=","community") for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
     
         path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 
-class FeedHandlerBase(CachedPage):
-    def generatePage(self):
-        all_entries = [ entry for feed in self.feeds() for entry in feed.entries() ]
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        return str(Template( file = path, searchList = (template_values,) ))
-        
-class FeedHandlerAll(FeedHandlerBase):
-    cacheName = "FeedAll"
-    def feeds(self):
-        return Feed.all()
-
-class FeedHandlerResearchers(CachedPage):
-    cacheName = "FeedResearchers"
-    def get(self):
-        all_entries = [ entry for feed in Feed.all().filter("category =","pure") for entry in feed.entries() ]
-        applied_entries = [ entry for feed in Feed.all().filter("category =","applied") for entry in feed.entries() ]
-        history_entries = [ entry for feed in Feed.all().filter("category =","history") for entry in feed.entries() ]
-        all_entries.extend(applied_entries)
-        all_entries.extend(history_entries)
-        all_entries.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        template_values = { 'qf':  QueryFactory(), 'allentries': all_entries[0:150], 'menu': menu, 'footer': footer, 'disqus':  disqus, 'header': header }
-
-        path = os.path.join(os.path.dirname(__file__), 'atom.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))    
-
-class FeedHandlerPure(FeedHandlerBase):
-    cacheName = "FeedPure"
-    def feeds(self):
-        return Feed.all().filter("category =","pure")
-
-class FeedHandlerApplied(FeedHandlerBase):
-    cacheName = "FeedApplied"
-    def feeds(self):
-        return Feed.all().filter("category =","applied")
-
-class FeedHandlerHistory(FeedHandlerBase):
-    cacheName = "FeedHistory"
-    def feeds(self):
-        return Feed.all().filter("category =","history")
-
-class FeedHandlerVisual(FeedHandlerBase):
-    cacheName = "FeedVisual"
-    def feeds(self):
-        return Feed.all().filter("category =","visual")
-
-class FeedHandlerArt(FeedHandlerBase):
-    cacheName = "FeedArt"
-    def feeds(self):
-        return Feed.all().filter("category =","art")
-
-class FeedHandlerTeachers(FeedHandlerBase):
-    cacheName = "FeedTeachers"
-    def feeds(self):
-        return Feed.all().filter("category =","teacher")
-
-class FeedHandlerFun(FeedHandlerBase):
-    cacheName = "FeedFun"
-    def feeds(self):
-        return Feed.all().filter("category =","fun")
-
-class FeedHandlerGeneral(FeedHandlerBase):
-    cacheName = "FeedGeneral"
-    def feeds(self):
-        return Feed.all().filter("category =","general")
-
-class FeedHandlerJournals(FeedHandlerBase):
-    cacheName = "FeedJournals"
-    def feeds(self):
-        return Feed.all().filter("category =","journal")
-
-class FeedHandlerJournalism(FeedHandlerBase):
-    cacheName = "FeedJournalism"
-    def feeds(self):
-        return Feed.all().filter("category =","journalism")
-    
-class FeedHandlerInstitutions(FeedHandlerBase):
-    cacheName = "FeedInstitutions"
-    def feeds(self):
-        return Feed.all().filter("category =","institution")
-
-class FeedHandlerCommunities(FeedHandlerBase):
-    cacheName = "FeedCommunities"
-    def feeds(self):
-        return Feed.all().filter("category =","community")
-
-class FeedHandlerCommercial(FeedHandlerBase):
-    cacheName = "FeedCommercial"
-    def feeds(self):
-        return Feed.all().filter("category =","commercial")
-
-
-class FeedHandlerPeople(FeedHandlerBase):
-    cacheName = "FeedPeople"
-    def feeds(self):
-        return Feed.all().filter("category !=","community").filter("category !=","institution").filter("category !=","journals").filter("category !=","commercial")
-
-# replaced by researcher
-#class FeedHandlerAcademics(FeedHandlerBase):
-    #cacheName = "FeedAcademics"
-    #def feeds(self):
-        #return Feed.all().filter("category !=","community").filter("category !=","educator").filter("category !=","journalism")       
-    
-    
 
 class FetchWorker(webapp.RequestHandler):
     def post(self):
@@ -690,86 +431,35 @@ class FetchWorker(webapp.RequestHandler):
             url = self.request.get('url')
             logging.info("FetchWorker: " + url)
             if url:
-                feed = Feed.all().filter("url =", url).get()
+                feed = Feed.all().filter("posts_url =", url).get()
                 if feed:
-                    feed.restore_cache()
+                    feed.update_database()
             self.response.set_status(200)
             logging.info("FetchWorker done: " + url)
         except Exception,e:
             self.response.set_status(200)
             logging.warning("FetchWorker failed: " + url + "\n" + str(e))
 
-class FetchAllWorker(webapp.RequestHandler):
+class AllWorker(webapp.RequestHandler):
     def get(self):
-        logging.info("FetchAll")
+        logging.info("AllWorker")
         for feed in Feed.all():
-            logging.info("Adding fetch task for feed " + feed.title)
-            taskqueue.add(url="/fetch", params={'url': feed.url})
+            #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
+            taskqueue.add(url="/fetch", params={'url': feed.posts_url})
+        taskqueue.add(url="/taglistworker", method="GET")
         self.response.set_status(200)
  
-class FetchAllSyncWorker(webapp.RequestHandler):
-    def get(self):
-        logging.info("FetchAllSyn")
-        for feed in Feed.all():
-            feed.restore_cache()
-        self.response.set_status(200)
-
 class RebootCommand(webapp.RequestHandler):
     def get(self):
         logging.info("Reboot")
         memcache.flush_all()
-        taskqueue.add(url="/fetchall")
+        taskqueue.add(url="/allworker")
         self.response.set_status(200)
 
-class ClearPageCacheCommand(webapp.RequestHandler):
-    def get(self):
-        logging.info("Clear Page Cache")
-        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","CategoryView","WeeklyPicks","DateView","StatsView"])
-        self.response.set_status(200)
-        
-class InitDatabase(webapp.RequestHandler):
-    def get(self):
-        if Feed.all().count() == 0:
-            feed = Feed()
-            feed.url = "http://peter.krautzberger.info/atom.xml"
-            feed.homepage = "http://peter.krautzberger.info"
-            feed.title = "thelazyscience"
-            feed.person = "Peter Krautzberger"
-            feed.category = "pure"
-            feed.language = "english"
-            feed.priority = 1
-            feed.favicon = "http://www.mathblogging.org/content/favicon.ico"
-            feed.comments = "http://thelazyscience.disqus.com/latest.rss"
-            feed.put()
-        self.redirect('/')
-        
-class PlanetTag(webapp.RequestHandler):
-    def get(self):
-        all_entries = False
-        tagname = self.request.get('content')
-        logging.info("PlanetTag: tagname '" + tagname + "'")
-        entries_tagged = []
-        if tagname != "":
-            if not all_entries:
-                all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-            logging.info("PlanetTag: gathering entries for tag " + tagname)
-            has_tag = lambda entry: len(filter(lambda tag: tag.term.lower() == tagname.lower(), entry.tags)) > 0
-            entries_tagged = filter(has_tag, all_entries)
-            entries_tagged.sort( lambda a,b: - cmp(a.timestamp_created,b.timestamp_created) )
-        memcachekey = "PlanetTag: tag list"
-        if not memcache.get(memcachekey):
-            if not all_entries:
-                all_entries = [ entry for feed in Feed.all() for entry in feed.entries() ]
-            logging.info("PlanetTag: generating tag list")
-            all_tag = [ tag.term.capitalize() for entry in all_entries for tag in entry.tags ]
-            all_tags = list(set(all_tag))
-            common_tags = counter.Counter(all_tag).most_common(200)
-            memcache.set(memcachekey, common_tags, 3000)
-        template_values = { 'qf':  QueryFactory(), 'moentries': entries_tagged[0:50], 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header, 'tagname': tagname, 'commontags': memcache.get(memcachekey) }
-    
-        path = os.path.join(os.path.dirname(__file__), 'planettag.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
+from dateview import DateView
+from categoryview import CategoryView
+from feedhandler import *
+from planettag import *
 
 def main():
   application = webapp.WSGIApplication(
@@ -777,27 +467,21 @@ def main():
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),
-                                        ('/grid', CategoryGridView),
                                         ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateResearchView),
                                         ('/byartvishisdate', DateHisArtVisView),
                                         ('/byteacherdate', DateTeacherView),
-                                        #('/bytags', TagsView), #outdated
                                         ('/bystats', StatsView),
-                                        ('/planetmath', PlanetMath),
                                         ('/planetmo', PlanetMO),
                                         ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
                                         ('/database-opml.xml', OPMLView),
-                                        #('/search', SearchView),  #outdated
                                         ('/cse-config', CSEConfig),
-                                        ('/fetchallsync', FetchAllSyncWorker),
-                                        ('/fetchall', FetchAllWorker),
+                                        ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
+                                        ('/taglistworker', TagListWorker),
                                         ('/reboot', RebootCommand),
-                                        ('/clearpagecache', ClearPageCacheCommand),
-                                        ('/init', InitDatabase),
                                         ('/feed_pure', FeedHandlerPure),
                                         ('/feed_applied', FeedHandlerApplied),
                                         ('/feed_history', FeedHandlerHistory),
@@ -826,3 +510,4 @@ def main():
 
 if __name__ == "__main__":
   main()
+

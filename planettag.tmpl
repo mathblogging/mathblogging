@@ -20,7 +20,7 @@ $menu
 
 <p> Right now, you chose <big>=$tagname=</big>. </p>
 
-<div id="tagcloud" style="width: 850px; height: 550px; position: relative;"></div>
+<div id="tagcloud" style="width: 750px; height: 550px; position: relative;"></div>
 
 
 
@@ -70,7 +70,7 @@ $disqus
 #end raw
 
 #for $tag in $commontags 
-    #if $tag[0] != "Uncategorized" and $tag[0] != "Uncategorized>"
+    #if $tag[0] != "Uncategorized"
         {text: "<%= tag[0] %>", weight: <%= tag[1] %>, url: "/planettag?content=<%= tag[0] %>"},#
     #end if
 #end for
