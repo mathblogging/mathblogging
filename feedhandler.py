@@ -51,7 +51,7 @@ class PlanetMOfeed(FeedHandlerBase):
     selfurl = ""
     cacheName = "PlanetMOfeed"
     def query(self):
-        return Post.gql("WHERE tags IN ['mathoverflow','mo','planetmo'] ORDER BY timestamp_created DESC LIMIT 50")
+        return Post.gql("WHERE tags IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['Planetmo','Mathoverflow', 'Math Overflow','Mo','MO'])
 
 class FeedHandlerResearchers(FeedHandlerCategories):
     selfurl = "feed_researchers"
