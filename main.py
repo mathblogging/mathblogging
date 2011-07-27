@@ -1,8 +1,3 @@
-#TODO: 
-#main.py : feeds auf neue categories umstellen
-#templates auf categories checken
-#JOURNALS!!
-
 # Mathblogging is a simple blog aggregator.
 # Copyright (C) 2010 Felix Breuer, Frederik von Heymann, Peter Krautzberger
 #
@@ -61,6 +56,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 #    return "".join(html_escape_table.get(c,c) for c in text)
 ## end
 
+### strip_http, add_slash: for Google Custom Search
 def strip_http(str):
     if str[0:7] == "http://":
       return str[7:]
@@ -72,7 +68,7 @@ def add_slash(str):
       return str+"/"
     else:
       return str
-
+### preliminary definitions for processing with feedparser.py
 def get_feedparser_entry_content(entry):
     try:
         return " ".join([content.value for content in entry.content])            
@@ -81,7 +77,7 @@ def get_feedparser_entry_content(entry):
             return entry['summary']
         except AttributeError:
             return ""
-
+### creating a reliable guid for our own feeds
 def feedparser_entry_to_guid(entry):
     theid = None
     try:
@@ -98,7 +94,7 @@ def feedparser_entry_to_guid(entry):
         except AttributeError:
             pass
     return theid
-
+### The first major class: Feed
 class Feed(db.Model):
     posts_url = db.LinkProperty()
     homepage = db.StringProperty()
@@ -171,6 +167,7 @@ class Feed(db.Model):
     #    result = memcache.get(self.comments)
     #    return result[0:num]
 
+#### The second major class: Entry
 class Entry(polymodel.PolyModel):
     title = db.TextProperty()
     link = db.StringProperty()
@@ -252,6 +249,7 @@ class Entry(polymodel.PolyModel):
         except TypeError:
             res = ""
         return res
+### Is gettime used anywhere???
     def gettime(self): #REMINDER for future code reading: change name to gettime_created -- after Felix fixes/improves statsview to fix the bug
         if self.timestamp_created == None:
             return time.gmtime(0)
@@ -274,6 +272,10 @@ class Post(Entry):
 class Comment(Entry):
     iamacomment = db.StringProperty()
 
+
+### The smaller classes:  preliminary work for generating actual webpages
+
+
 class MainPage(webapp.RequestHandler):
   def get(self):
       self.redirect("/content/start.html")
@@ -287,7 +289,7 @@ class GqlQueryFactory:
       return db.GqlQuery(string)
 
 class CachedPage(webapp.RequestHandler):
-    # the empty string as cacheName turns off caching
+    # NOTE: the empty string as cacheName turns off caching
     cacheName = "default"
     cacheTime = 2700
     def get(self):
@@ -310,6 +312,8 @@ class SimpleCheetahPage(CachedPage):
         path = os.path.join(os.path.dirname(__file__), self.templateName)
         return str(Template( file = path, searchList = (template_values,) ))
 
+### static pages
+
 class StartPage(SimpleCheetahPage):
     cacheName = "StartPage"
     templateName = "start.tmpl"
@@ -321,6 +325,8 @@ class AboutPage(SimpleCheetahPage):
 class FeedsPage(SimpleCheetahPage):
     cacheName = "FeedsPage"
     templateName = "feeds.tmpl"
+
+### the old Dynamic pages -- OBSOLETE?
 
 #class CategoryView(SimpleCheetahPage):
 #    cacheName = "CategoryView"
@@ -415,7 +421,7 @@ class CsvView(webapp.RequestHandler):
 #        self.response.headers['Content-Type'] = 'text/xml'
 #        self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-# google custom search engine
+#### CSE = google custom search engine
 class CSEConfig(webapp.RequestHandler):
     def get(self):
         template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
@@ -424,7 +430,7 @@ class CSEConfig(webapp.RequestHandler):
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 
-
+### Worker classes: downloading the feeds
 class FetchWorker(webapp.RequestHandler):
     def post(self):
         try:
@@ -456,6 +462,8 @@ class RebootCommand(webapp.RequestHandler):
         taskqueue.add(url="/allworker")
         self.response.set_status(200)
 
+### Dynamically generated web pages -- the main content of the site
+
 from dateview import DateView
 from dateviewresearch import DateViewResearch
 from dateviewteacher import DateViewTeacher
@@ -466,6 +474,9 @@ from planettag import *
 from planetmo import *
 from dataexport import *
 from grid import *
+
+
+### the main function.
 
 def main():
   application = webapp.WSGIApplication(
