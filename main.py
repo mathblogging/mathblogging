@@ -406,14 +406,14 @@ class CsvView(webapp.RequestHandler):
         self.response.headers['Content-Type'] = 'text/csv'
         self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
-# Database OPML output
-class OPMLView(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
-    
-        path = os.path.join(os.path.dirname(__file__), 'opml.tmpl')
-        self.response.headers['Content-Type'] = 'text/xml'
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+## Database OPML output
+#class OPMLView(webapp.RequestHandler):
+#    def get(self):
+#        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
+#    
+#        path = os.path.join(os.path.dirname(__file__), 'opml.tmpl')
+#        self.response.headers['Content-Type'] = 'text/xml'
+#        self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 # google custom search engine
 class CSEConfig(webapp.RequestHandler):
@@ -464,6 +464,8 @@ from categoryview import CategoryView
 from feedhandler import *
 from planettag import *
 from planetmo import *
+from dataexport import *
+from grid import *
 
 def main():
   application = webapp.WSGIApplication(
@@ -508,7 +510,10 @@ def main():
                                         ('/feed_small', FeedHandlerPeople), # left for transistion
                                         ('/feed_academics', FeedHandlerResearchers), # left for transition
                                         ('/feed_institution', FeedHandlerInstitutions),
-                                        ('/planettag', PlanetTag)],
+                                        ('/planettag', PlanetTag),
+                                        # Testing
+                                        ('/gridview', GridView)
+                                        ],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)
 

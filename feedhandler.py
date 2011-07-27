@@ -48,7 +48,7 @@ class FeedHandlerCategories(FeedHandlerBase):
         return Post.gql("WHERE category IN :1 ORDER BY timestamp_created DESC LIMIT 150", self.thecategories)
 
 class PlanetMOfeed(FeedHandlerBase):
-    selfurl = ""
+    selfurl = "planetmo-feed"
     cacheName = "PlanetMOfeed"
     def query(self):
         return Post.gql("WHERE tags IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['Planetmo','Mathoverflow', 'Math Overflow','Mo','MO'])
