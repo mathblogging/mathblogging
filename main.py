@@ -457,6 +457,9 @@ class RebootCommand(webapp.RequestHandler):
         self.response.set_status(200)
 
 from dateview import DateView
+from dateviewresearch import DateViewResearch
+from dateviewteacher import DateViewTeacher
+from dateviewhisartvis import DateViewHisArtVis
 from categoryview import CategoryView
 from feedhandler import *
 from planettag import *
@@ -469,9 +472,9 @@ def main():
                                         ('/bytype', CategoryView),
                                         ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
-                                        ('/byresearchdate', DateResearchView),
-                                        ('/byartvishisdate', DateHisArtVisView),
-                                        ('/byteacherdate', DateTeacherView),
+                                        ('/byresearchdate', DateViewResearch),
+                                        ('/byartvishisdate', DateViewHisArtVis),
+                                        ('/byteacherdate', DateViewTeacher),
                                         ('/bystats', StatsView),
                                         ('/planetmo', PlanetMO),
                                         ('/planetmo-feed', PlanetMOfeed),
