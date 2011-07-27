@@ -463,6 +463,7 @@ from dateviewhisartvis import DateViewHisArtVis
 from categoryview import CategoryView
 from feedhandler import *
 from planettag import *
+from planetmo import *
 
 def main():
   application = webapp.WSGIApplication(
