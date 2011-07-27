@@ -47,19 +47,19 @@ from temp_global import *
 import cgi
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-# Escape HTML entities.
-html_escape_table = {
-    "&": "&amp;",
-    '"': "&quot;",
-#    "'": "&apos;",
-    ">": "&gt;",
-    "<": "&lt;",
-    }
-
-def html_escape(text):
-    """Produce entities within text."""
-    return "".join(html_escape_table.get(c,c) for c in text)
-# end
+## Escape HTML entities.
+#html_escape_table = {
+#    "&": "&amp;",
+#    '"': "&quot;",
+##    "'": "&apos;",
+#    ">": "&gt;",
+#    "<": "&lt;",
+#    }
+#
+#def html_escape(text):
+#    """Produce entities within text."""
+#    return "".join(html_escape_table.get(c,c) for c in text)
+## end
 
 def strip_http(str):
     if str[0:7] == "http://":
@@ -94,7 +94,7 @@ def feedparser_entry_to_guid(entry):
             pass
         dt = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
         try:
-            theid = (html_escape(entry['link']) + str(dt) + entry.title)[0:500]
+            theid = (entry['link'] + str(dt) + entry.title)[0:500]
         except AttributeError:
             pass
     return theid
@@ -201,7 +201,7 @@ class Entry(polymodel.PolyModel):
                 x = cls()
                 x.service = database_feed.title
                 x.title = entry['title']
-                x.link = html_escape(entry['link'])
+                x.link = entry['link']
                 x.length = len( get_feedparser_entry_content(entry) )
                 x.content = get_feedparser_entry_content(entry)
                 x.category = database_feed.category
