@@ -474,7 +474,7 @@ from planettag import *
 from planetmo import *
 from dataexport import *
 from grid import *
-
+from weeklypicks import *
 
 ### the main function.
 
