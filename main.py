@@ -37,10 +37,13 @@ from google.appengine.api import urlfetch
 from google.appengine.api import memcache
 from google.appengine.api.labs import taskqueue
 
-from temp_global import *
-
 import cgi
 from google.appengine.ext.webapp.util import run_wsgi_app
+
+
+### some variables like header, footer etc.
+from temp_global import *
+
 
 ## Escape HTML entities.
 #html_escape_table = {

@@ -3,7 +3,18 @@ from main import *
 class DateViewTeacher(TemplatePage):
     cacheName = "DateViewTeacher"
     def generateContent(self):
-        s = """<h2> The latests posts Teachers and Educators </h2>
+        s = """<div class="tocbox"> 
+  <ul>
+    <li><a href="/bydate" title="Recent posts">All</a>
+    <li><a href="/byresearchdate" title="Recent posts in Research">Researchers</a>
+    </li>
+    <li><a href="/byartvishisdate" title="Recent posts in Art,Visual,History">Art/Visual/History</a>
+    </li>
+    <li><a href="/byteacherdate" title="Recent posts from Teachers">Teachers</a>
+    </li>
+  </ul>
+</div>
+<h2> The latests posts Teachers and Educators </h2>
 <table id="postsbydate">
   <thead>
   <tr>
