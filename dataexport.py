@@ -1,6 +1,7 @@
 from main import *
 
 class CsvView(CachedPage):
+    cacheName = "CsvView"
     selfurl = "database.csv"
  #   self.response.headers['Content-Type'] = 'text/csv'
     def generatePage(self):
@@ -11,6 +12,7 @@ class CsvView(CachedPage):
         return "".join(output)
 
 class OPMLView(CachedPage):
+    cacheName = "OPMLView"
     selfurl = "database-opml.xml"
     def generatePage(self):
         output = []
