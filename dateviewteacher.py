@@ -14,7 +14,7 @@ class DateViewTeacher(TemplatePage):
     </li>
   </ul>
 </div>
-<h2> The latests posts Teachers and Educators </h2>
+<h2> The latests posts 'Teachers, Educators' </h2>
 <table id="postsbydate">
   <thead>
   <tr>
