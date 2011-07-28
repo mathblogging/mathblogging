@@ -41,7 +41,7 @@ menu = """
   </li>     
   <li><h2><a href="/feeds" title="Feeds">Feeds</a></h2>
   </li>
-  <li><h2><a href="https://mathblogging.wordpress.com/" title="About us">About us</a></h2>
+  <li><h2><a href="https://mathblogging.wordpress.com/about" title="About us">About us</a></h2>
   </li>
   <li><h2><a href="/" title="Search">Search</a></h2>
   </li>
