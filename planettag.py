@@ -66,7 +66,7 @@ class PlanetTag(TemplatePage):
         logging.info("taglist is " + str(taglist))
         if taglist:
             for tag, weight in memcache.get(memcachekey).iteritems():
-                if tag != "Uncategorized" and tag != "Uncategorized>" and tag != "Mathematics" and tag != "Math" and tag != "http://gdata.youtube.com/schemas/2007#video" and weight > 10:
+                if tag != "Uncategorized" and tag != "Uncategorized>" and tag != "Mathematics" and tag != "Math" and tag != "Http://gdata.youtube.com/schemas/2007#video" and weight > 10:
                     output.append(""" {text: "%(text)s", weight: %(weight)s, url: "/planettag?content=%(text)s"}, """ % {"text":tag, "weight": weight} )
         output.append( """
       ];
