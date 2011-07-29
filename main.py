@@ -192,10 +192,14 @@ class Entry(polymodel.PolyModel):
     def generate_entry(cls, entry, feedparser_feed, database_feed):
         try:
             # if entry is in database, i.e.,
-            result = cls.all().filter("service=",database_feed.title).filter("guid=",feedparser_entry_to_guid(entry)).get()
-            if result != None:
-                #   update entry attributes if changed?
-                pass
+### PETER TRYING TO OPTIMIZE CODE
+#ORIGINAL            result = cls.all().filter("service=",database_feed.title).filter("guid=",feedparser_entry_to_guid(entry)).get()
+#FIRST ATTEMPT            result = cls.gql("WHERE guid = :1", feedparser_entry_to_guid(entry))[0]
+            if cls.gql("WHERE guid = :1", feedparser_entry_to_guid(entry)).count() != 0:
+               logging.info("guid exists: " + entry['title'])
+#ORIGINAL            if result != None:
+#ORIGINAL                #   update entry attributes if changed?
+#ORIGINAL               # pass
             else:
                 #   add entry to database!
                 x = cls()
@@ -440,7 +444,8 @@ class FetchWorker(webapp.RequestHandler):
             url = self.request.get('url')
             logging.info("FetchWorker: " + url)
             if url:
-                feed = Feed.all().filter("posts_url =", url).get()
+#ORIGINAL                feed = Feed.all().filter("posts_url =", url).get()
+                feed = Feed.gql("WHERE posts_url = :1", url).get()
                 if feed:
                     feed.update_database()
             self.response.set_status(200)
@@ -448,7 +453,7 @@ class FetchWorker(webapp.RequestHandler):
         except Exception,e:
             self.response.set_status(200)
             logging.warning("FetchWorker failed: " + url + "\n" + str(e))
-
+### QUESTION: WHY CAN"T WE PASS feed???
 class AllWorker(webapp.RequestHandler):
     def get(self):
         logging.info("AllWorker")
