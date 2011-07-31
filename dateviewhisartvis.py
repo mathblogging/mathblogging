@@ -8,13 +8,13 @@ class DateViewHisArtVis(TemplatePage):
     <li><a href="/bydate" title="Recent posts">All</a>
     <li><a href="/byresearchdate" title="Recent posts in Research">Researchers</a>
     </li>
-    <li><a href="/byartvishisdate" title="Recent posts in Art,Visual,History">Art/Visual/History</a>
+    <li><a href="/byartvishisdate" title="Recent posts in Art,Visual,History">Art/Vis/His</a>
     </li>
     <li><a href="/byteacherdate" title="Recent posts from Teachers">Teachers</a>
     </li>
   </ul>
 </div>
-        <h2> The latests posts 'History, Art, Visual' </h2>
+        <h2> The latests posts 'Art, Visual, History' </h2>
 <table id="postsbydate">
   <thead>
   <tr>

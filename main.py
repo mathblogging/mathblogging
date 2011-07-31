@@ -104,7 +104,7 @@ class Feed(db.Model):
     title = db.StringProperty()
     listtitle = db.StringProperty()
     person = db.StringProperty()
-    category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution journal
+    category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution journal news carnival
     language = db.StringProperty()
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
@@ -520,6 +520,8 @@ def main():
                                         ('/feed_institutions', FeedHandlerInstitutions),
                                         ('/feed_communities', FeedHandlerCommunities),
                                         ('/feed_commercial', FeedHandlerCommercial),
+                                        ('/feed_newssite', FeedHandlerNewssite),
+                                        ('/feed_carnival', FeedHandlerCarnival),
                                         ('/feed_all', FeedHandlerAll),
                                         ('/feed_researchers', FeedHandlerResearchers),
                                         ('/feed_people', FeedHandlerPeople),

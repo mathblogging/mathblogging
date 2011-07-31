@@ -37,6 +37,8 @@ class CategoryView(TemplatePage):
 <li> <a href="#commercial">Commercial</a></li> 
 <li> <a href="#community">Communities</a></li> 
 <li> <a href="#institution">Institutions</a></li> 
+<li> <a href="#news">News</a></li> 
+<li> <a href="#carnivals">Carnivals</a></li> 
 </ul>
 </div>"""
         thelist = [ 
@@ -52,6 +54,8 @@ class CategoryView(TemplatePage):
             ['Journals, Publishers and similar feeds','journal'],
             ['Commercial blogs','commercial'],
             ['Communities','community'],
-            ['Institutions','institution']
+            ['Institutions','institution'],
+            ['News','news'],
+            ['Carnivals','carnival'],
         ]
         return s + " ".join([self.generateSection(pair) for pair in thelist])

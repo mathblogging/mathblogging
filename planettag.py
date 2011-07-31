@@ -23,9 +23,8 @@ class PlanetTag(TemplatePage):
         output = []
         output.append( """<h2> PlanetTAG </h2>
 
-<p> At PlanetTAG we collect recent posts tagged with a tag of your choice with just one click! </p>
-
-<p> Right now, you chose <big>%(tagname)s</big>. </p>
+<p> Click on a tag to see a list of recent posts. Right now, you chose <big>==%(tagname)s==</big>.</p>
+<p> For convenience, we filter out the dominant tags <a href="/planettag?content=Mathematics">Mathematics</a>, <a href="/planettag?content=Math">Math</a>, <a href="/planettag?content=Matem&#225;ticas">Matem&#225;ticas</a>, <a href="/planettag?content=Matematica">Matematica</a> and the infamous <a href="/planettag?content=Uncategorized">Uncategorized</a> (as well as some error generating tags). </p>
 
 <div id="tagcloud" style="width: 750px; height: 550px; position: relative;"></div>""" % {"tagname":tagname})
         for entry in Post.gql("WHERE tags = :1 ORDER BY timestamp_created LIMIT 20",tagname):
@@ -66,7 +65,7 @@ class PlanetTag(TemplatePage):
         logging.info("taglist is " + str(taglist))
         if taglist:
             for tag, weight in memcache.get(memcachekey).iteritems():
-                if tag != "Uncategorized" and tag != "Uncategorized>" and tag != "Mathematics" and tag != "Math" and tag != "Http://gdata.youtube.com/schemas/2007#video" and weight > 10:
+                if tag != "Uncategorized" and tag != "Uncategorized>" and tag != "Mathematics" and tag != "Math" and tag != "Http://gdata.youtube.com/schemas/2007#video" and tag != "Matem&#225;ticas" and tag != "Matematica" and weight > 10:
                     output.append(""" {text: "%(text)s", weight: %(weight)s, url: "/planettag?content=%(text)s"}, """ % {"text":tag, "weight": weight} )
         output.append( """
       ];

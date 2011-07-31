@@ -123,6 +123,16 @@ class FeedHandlerCommercial(FeedHandlerCategory):
     cacheName = "FeedCommercial"
     thecategory = "commercial"
 
+class FeedHandlerNewssite(FeedHandlerCategory):
+    selfurl = ""
+    cacheName = "FeedNewssite"
+    thecategory = "news"
+
+class FeedHandlerCarnival(FeedHandlerCategory):
+    selfurl = ""
+    cacheName = "FeedCarnival"
+    thecategory = "carnival"
+
 class FeedHandlerPeople(FeedHandlerCategories):
     selfurl = ""
     cacheName = "FeedPeople"
