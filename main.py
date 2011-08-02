@@ -461,6 +461,9 @@ class AllWorker(webapp.RequestHandler):
             #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
             taskqueue.add(url="/fetch", params={'url': feed.posts_url})
         taskqueue.add(url="/taglistworker", method="GET")
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+        for page in pages_to_cache_list:
+            taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
  
 class RebootCommand(webapp.RequestHandler):
