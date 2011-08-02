@@ -46,17 +46,17 @@ from temp_global import *
 
 
 ## Escape HTML entities.
-#html_escape_table = {
-#    "&": "&amp;",
-#    '"': "&quot;",
-##    "'": "&apos;",
-#    ">": "&gt;",
-#    "<": "&lt;",
-#    }
-#
-#def html_escape(text):
-#    """Produce entities within text."""
-#    return "".join(html_escape_table.get(c,c) for c in text)
+html_escape_table = {
+    "&": "&amp;",
+    '"': "&quot;",
+    "'": "&apos;",
+    ">": "&gt;",
+    "<": "&lt;",
+    }
+
+def html_escape(text):
+    """Produce entities within text."""
+    return "".join(html_escape_table.get(c,c) for c in text)
 ## end
 
 ### strip_http, add_slash: for Google Custom Search
@@ -74,7 +74,7 @@ def add_slash(str):
 ### preliminary definitions for processing with feedparser.py
 def get_feedparser_entry_content(entry):
     try:
-        return " ".join([content.value for content in entry.content])            
+        return html_escape(" ".join([content.value for content in entry.content]))
     except AttributeError:
         try:
             return entry['summary']
@@ -84,7 +84,7 @@ def get_feedparser_entry_content(entry):
 def feedparser_entry_to_guid(entry):
     theid = None
     try:
-        theid = entry.id
+        theid = html_escape(entry.id)
     except AttributeError:
         t = time.gmtime(0)
         try:
@@ -93,7 +93,7 @@ def feedparser_entry_to_guid(entry):
             pass
         dt = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
         try:
-            theid = (entry['link'] + str(dt) + entry.title)[0:500]
+            theid = html_escape((entry['link'] + str(dt) + entry.title)[0:500])
         except AttributeError:
             pass
     return theid
@@ -170,7 +170,17 @@ class Feed(db.Model):
     #    result = memcache.get(self.comments)
     #    return result[0:num]
 
+
+
+
+
+
+
+
 #### The second major class: Entry
+
+
+
 class Entry(polymodel.PolyModel):
     title = db.TextProperty()
     link = db.StringProperty()
@@ -203,13 +213,13 @@ class Entry(polymodel.PolyModel):
             else:
                 #   add entry to database!
                 x = cls()
-                x.service = database_feed.title
-                x.title = entry['title']
-                x.link = entry['link']
+                x.service = html_escape(database_feed.title)
+                x.title = html_escape(entry['title'])
+                x.link = html_escape(entry['link'])
                 x.length = len( get_feedparser_entry_content(entry) )
-                x.content = get_feedparser_entry_content(entry)
+                x.content = html_escape(get_feedparser_entry_content(entry))
                 x.category = database_feed.category
-                x.homepage = database_feed.homepage
+                x.homepage = html_escape(database_feed.homepage)
                 try:
                     x.tags = [ string.capwords(tag.term) for tag in entry.tags ]
                 except AttributeError:
@@ -487,11 +497,19 @@ from dataexport import *
 from grid import *
 from weeklypicks import *
 
+class ClearPageCacheCommand(webapp.RequestHandler):
+    def get(self):
+        logging.info("Clear Page Cache")
+        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","CategoryView","WeeklyPicks","DateView","StatsView"])
+        self.response.set_status(200)
+
+
 ### the main function.
 
 def main():
   application = webapp.WSGIApplication(
                                        [('/', StartPage),
+                                        ('/clearpagecache', ClearPageCacheCommand),
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),
