@@ -74,7 +74,7 @@ def add_slash(str):
 ### preliminary definitions for processing with feedparser.py
 def get_feedparser_entry_content(entry):
     try:
-        return html_escape(" ".join([content.value for content in entry.content]))
+        return " ".join([content.value for content in entry.content])
     except AttributeError:
         try:
             return entry['summary']
@@ -217,7 +217,7 @@ class Entry(polymodel.PolyModel):
                 x.title = html_escape(entry['title'])
                 x.link = html_escape(entry['link'])
                 x.length = len( get_feedparser_entry_content(entry) )
-                x.content = html_escape(get_feedparser_entry_content(entry))
+                x.content = get_feedparser_entry_content(entry)
                 x.category = database_feed.category
                 x.homepage = html_escape(database_feed.homepage)
                 try:

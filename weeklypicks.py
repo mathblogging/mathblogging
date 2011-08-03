@@ -7,7 +7,7 @@ class WeeklyPicks(TemplatePage):
     cacheName = "WeeklyPicks"
     def generateContent(self):
         output = []
-        output.append( """<h2> Weekly picks <a href="https://mathblogging.wordpress.com/category/weekly-picks/feed/"><img src="/content/rss-64.png" alt="Weekly picks" height=25px/></a> </h2>
+        output.append( """<h2> Weekly picks <a href="https://mathblogging.wordpress.com/category/weekly-picks/feed/"><img src="/content/rss-64.png" alt="Weekly picks" height="25"/></a> </h2>
 
 Our weekly picks, crossposted from <a href="https://mathblogging.wordpress.com/category/weekly-picks/">Mathblogging.org -- the blog</a>.
 """)

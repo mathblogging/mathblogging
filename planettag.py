@@ -43,7 +43,7 @@ class PlanetTag(TemplatePage):
   <div class="planetbody">
   <p> """ )
             output.append( entry.content )
-            output.append( """  </p>  </div> </div> """ )
+            output.append( """  </p>  </div> """ )
         output.append( """ </div>
  <script type="text/javascript">
       /*!
@@ -58,7 +58,7 @@ class PlanetTag(TemplatePage):
        * You can also specify the following optional attributes:
        *
        * url: a URL to which the word will be linked. It will be used as the href attribute of an HTML anchor.
-       * title: an HTML title for the <span> that will contain the word(s)
+       * title: an HTML title for the span that will contain the word(s)
        */
       var word_list = [ """ )
         taglist = memcache.get(memcachekey)

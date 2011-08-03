@@ -5,7 +5,7 @@ class DateView(TemplatePage):
     def generateContent(self):
         s = """<div class="tocbox"> 
   <ul>
-    <li><a href="/bydate" title="Recent posts">All</a>
+    <li><a href="/bydate" title="Recent posts">All</a> </li>
     <li><a href="/byresearchdate" title="Recent posts in Research">Researchers</a>
     </li>
     <li><a href="/byartvishisdate" title="Recent posts in Art,Visual,History">Art/Vis/His</a>

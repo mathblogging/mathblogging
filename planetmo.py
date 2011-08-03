@@ -7,7 +7,7 @@ class PlanetMO(TemplatePage):
     cacheName = "PlanetMO"
     def generateContent(self):
         output = []
-        output.append( """<h2> PlanetMO <a href="planetmo-feed"><img src="/content/rss-64.png" alt="PlanetMO feed" height=25px/></a> </h2>
+        output.append( """<h2> PlanetMO <a href="planetmo-feed"><img src="/content/rss-64.png" alt="PlanetMO feed" height="25"/></a> </h2>
 
 At PlanetMO we collect recent posts tagged "mathoverflow", "math overflow", "mo" or "planetmo".""")
 
