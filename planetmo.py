@@ -25,7 +25,7 @@ At PlanetMO we collect recent posts tagged "mathoverflow", "math overflow", "mo"
             output.append( """ </div>
   </div>
   <div class="planetbody">
-  <p> """ )
+  """ )
             output.append( entry.content )
-            output.append( """  </p>  </div> </div> """ )
+            output.append( """  </div> </div> """ )
         return "".join(output)

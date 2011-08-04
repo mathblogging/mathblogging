@@ -282,7 +282,9 @@ background-color:black;
 
 /* ------------ Begin Date View Table --------------- */
 
-#postsbydate {
+.bydate {
+    float: left;
+    margin: 1ex !important;
     table-layout: fixed;
     margin: 5ex;
     padding: 5px;
@@ -291,37 +293,37 @@ background-color:black;
     -webkit-box-shadow: 4px 4px 8px black;
 }
 
-#postsbydate td {
+.bydate td {
     border-bottom: 1px dashed gray;
 }
 
-#postsbydate tbody .datecolumn {
+.bydate tbody .datecolumn {
     width: 7ex;
     font-size: 80%;
     text-align: left;
 }
 
-#postsbydate tbody div {
+.bydate tbody div {
     height: 1.2em;
     overflow: hidden;
 }
 
-#postsbydate tbody .blogcolumn {
+.bydate tbody .blogcolumn {
     width: 30ex;
     font-size: 80%;
     text-align: left;
 }
 
-#postbydate tbody .postcolumn {
+.bydate tbody .postcolumn {
     text-align: left;
     width: 50ex;
 }
 
-#postsbydate a {
+.bydate a {
    text-decoration: none;
 }
 
-#postsbydate .postcolumn a {
+.bydate .postcolumn a {
     font-size: 90%;
     color: black;
 }
