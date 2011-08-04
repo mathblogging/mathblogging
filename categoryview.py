@@ -7,7 +7,7 @@ class CategoryView(TemplatePage):
         categorylabel = pair[1]
         output = []
         output.append("""
-        <h2 id="%(category)s"> %(caption)s <a href="#"> (Back to top) </a> </font> </h2> 
+        <h2 id="%(category)s"> %(caption)s <a href="#"> (Back to top) </a> </h2> 
         <ul class="feedbox-list">
         """ % {'category': categorylabel, 'caption': caption})
         for feed in Feed.gql("WHERE category = :1 ORDER BY listtitle", categorylabel):
