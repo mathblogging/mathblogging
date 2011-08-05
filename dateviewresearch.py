@@ -15,7 +15,7 @@ class DateViewResearch(TemplatePage):
   </ul>
 </div>
         <h2> The latests posts 'Pure, Applied' </h2>
-<table id="postsbydate">
+<table class="bydate">
   <thead>
   <tr>
     <th align="left" class="datecolumn">

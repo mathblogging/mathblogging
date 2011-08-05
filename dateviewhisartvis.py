@@ -15,7 +15,7 @@ class DateViewHisArtVis(TemplatePage):
   </ul>
 </div>
         <h2> The latests posts 'Art, Visual, History' </h2>
-<table id="postsbydate">
+<table class="bydate">
   <thead>
   <tr>
     <th align="left" class="datecolumn">
