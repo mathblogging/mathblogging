@@ -364,7 +364,11 @@ background-color:black;
     -webkit-box-shadow: 4px 4px 7px black;
     border: 1px solid gray;
     padding: 18px 18px 18px 18px;
+<<<<<<< HEAD
+    margin: 10px 10px 30px 10px;
+=======
     margin: 10px 10px 50px 10px;
+>>>>>>> 1bb0d5aa9e26b8ac4f90bbc4ede5fe9b3bc86ce2
 }
 
 .planetbody, .planetbody h1, .planetbody h2, .planetbody h3, .planetbody h4 {

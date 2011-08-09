@@ -496,6 +496,10 @@ from planetmo import *
 from dataexport import *
 from grid import *
 from weeklypicks import *
+<<<<<<< HEAD
+=======
+#from statsview import *
+>>>>>>> 289d3ceaf702c97647d6b3f9d25f3902bcdca295
 
 class ClearPageCacheCommand(webapp.RequestHandler):
     def get(self):
