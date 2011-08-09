@@ -6,7 +6,7 @@ api_version: 1
 handlers:
 - url: /remote_api
   script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
-  login: admin
+  login: admin  
 - url: /content/(.*)
   static_files: content/\1
   upload: content/(.*)
@@ -30,3 +30,6 @@ handlers:
   login: admin
 - url: .*
   script: main.py
+  
+builtins:
+- datastore_admin: on

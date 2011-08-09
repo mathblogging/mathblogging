@@ -1,4 +1,4 @@
 cron:
 - description: check for feed updates
   url: /allworker
-  schedule: every 3 hours
+  schedule: every 2 hours

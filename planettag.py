@@ -27,7 +27,7 @@ class PlanetTag(TemplatePage):
 <p> For convenience, we filter out the dominant tags <a href="/planettag?content=Mathematics">Mathematics</a>, <a href="/planettag?content=Math">Math</a>, <a href="/planettag?content=Maths">Maths</a>, <a href="/planettag?content=Matem&#225;ticas">Matem&#225;ticas</a>, <a href="/planettag?content=Matematica">Matematica</a> and the infamous <a href="/planettag?content=Uncategorized">Uncategorized</a> (as well as some error generating tags). </p>
 
 <div id="tagcloud" style="width: 750px; height: 550px; position: relative;"></div>""" % {"tagname":tagname})
-        for entry in Post.gql("WHERE tags = :1 ORDER BY timestamp_created LIMIT 20",tagname):
+        for entry in Post.gql("WHERE tags = :1 ORDER BY timestamp_created DESC LIMIT 20",tagname):
             output.append( """ <div class="planetbox">  
   <div class="planethead">
   <h2><a href="%(link)s" title="%(title)s">%(title)s</a></h2>
@@ -43,8 +43,8 @@ class PlanetTag(TemplatePage):
   <div class="planetbody">
   <p> """ )
             output.append( entry.content )
-            output.append( """  </p>  </div> """ )
-        output.append( """ </div>
+            output.append( """  </p>  </div> </div>""" )
+        output.append( """ 
  <script type="text/javascript">
       /*!
        * Create an array of objects to be passed to jQCloud, each representing a word in the cloud and specifying
