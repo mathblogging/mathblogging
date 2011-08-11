@@ -4,4 +4,4 @@ cron:
   schedule: every 2 hours
 - description: clean up datastore
   url: /cleanupdatastore
-  schedule: every monday
+  schedule: every monday 02:00
