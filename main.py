@@ -467,6 +467,23 @@ class RebootCommand(webapp.RequestHandler):
         taskqueue.add(url="/allworker")
         self.response.set_status(200)
 
+class CleanUpFeed(webapp.RequestHandler):
+    def post(self):
+        feed_title = self.request.get("feed_title")
+        logging.info("Clean Up Feed " + feed_title)
+        for post in Post.gql("WHERE service = :1 AND timestamp_updated < :2 ORDER BY timestamp_updated DESC OFFSET 30", feed_title, datetime.datetime.now() - datetime.timedelta(30)):
+            post.delete()
+        for comment in Comment.gql("WHERE service = :1 AND timestamp_updated < :2", feed_title, datetime.datetime.now() - datetime.timedelta(7)):
+            comment.delete()
+        self.response.set_status(200)
+        
+class CleanUpDatastore(webapp.RequestHandler):
+    def get(self):
+        for feed in Feed.all():
+           taskqueue.add(url="/cleanupfeed",params={"feed_title":html_escape(feed.title)}, queue_name='cleanup-queue')
+        self.response.set_status(200)
+           
+
 ### Dynamically generated web pages -- the main content of the site
 
 from dateview import DateView
@@ -495,6 +512,8 @@ def main():
   application = webapp.WSGIApplication(
                                        [('/', StartPage),
                                         ('/clearpagecache', ClearPageCacheCommand),
+                                        ('/cleanupdatastore', CleanUpDatastore),
+                                        ('/cleanupfeed', CleanUpFeed),
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),

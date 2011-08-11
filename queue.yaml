@@ -1,0 +1,5 @@
+queue:
+- name: cleanup-queue
+  rate: 5/h
+  bucket_size: 1
+  
