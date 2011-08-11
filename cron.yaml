@@ -2,3 +2,6 @@ cron:
 - description: check for feed updates
   url: /allworker
   schedule: every 2 hours
+- description: clean up datastore
+  url: /cleanupdatastore
+  schedule: every monday

@@ -1,4 +1,4 @@
-application: mathblogging
+application: mathblogging-staging
 version: 1
 runtime: python
 api_version: 1
@@ -26,6 +26,12 @@ handlers:
   script: main.py
   login: admin
 - url: /reboot
+  script: main.py
+  login: admin
+- url: /cleanupdatastore
+  script: main.py
+  login: admin
+- url: /cleanupfeed
   script: main.py
   login: admin
 - url: .*
