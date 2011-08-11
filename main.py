@@ -445,7 +445,7 @@ class FetchWorker(webapp.RequestHandler):
             self.response.set_status(200)
             logging.info("FetchWorker done: " + url)
         except Exception,e:
-            self.response.set_status(200)
+            self.response.set_status(503)
             logging.warning("FetchWorker failed: " + url + "\n" + str(e))
 ### QUESTION: WHY CAN"T WE PASS feed???
 class AllWorker(webapp.RequestHandler):
