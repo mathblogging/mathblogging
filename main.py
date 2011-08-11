@@ -363,23 +363,7 @@ class WeeklyPicks(SimpleCheetahPage):
         
         path = os.path.join(os.path.dirname(__file__), 'weekly_picks.tmpl')
         return str(Template( file = path, searchList = (template_values,) ))
-        
-        
-class StatsView(CachedPage):
-    cacheName = "StatsView"
-    # TODO: do everything in template???
-    def generatePage(self):
-        feeds_w_comments_day = db.GqlQuery("SELECT * FROM Feed WHERE comments_day != 0 ORDER BY comments_day DESC").fetch(1000)
-        feeds_w_comments_week = db.GqlQuery("SELECT * FROM Feed WHERE comments_week != 0 ORDER BY comments_week DESC").fetch(1000)
-        feeds_w_posts_week = db.GqlQuery("SELECT * FROM Feed WHERE posts_week != 0 ORDER BY posts_week DESC").fetch(1000)
-        feeds_w_posts_month = db.GqlQuery("SELECT * FROM Feed WHERE posts_month != 0 ORDER BY posts_month DESC").fetch(1000)
-        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'comments_week': feeds_w_comments_week, 'comments_day': feeds_w_comments_day, 'posts_week': feeds_w_posts_week, 'posts_month': feeds_w_posts_month, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-            
-        path = os.path.join(os.path.dirname(__file__), 'bystats.tmpl')
-        renderedString = str(Template( file = path, searchList = (template_values,) ))
-        return renderedString
 
-        
 class DateResearchView(CachedPage):
     cacheName = "DateResearchView"
     # TODO: do everything in template???
@@ -496,10 +480,7 @@ from planetmo import *
 from dataexport import *
 from grid import *
 from weeklypicks import *
-<<<<<<< HEAD
-=======
-#from statsview import *
->>>>>>> 289d3ceaf702c97647d6b3f9d25f3902bcdca295
+from statsview import *
 
 class ClearPageCacheCommand(webapp.RequestHandler):
     def get(self):
