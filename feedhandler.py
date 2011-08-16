@@ -28,7 +28,7 @@ class FeedHandlerBase(CachedPage):
    <updated>%(tupdated)s</updated>
    <id>%(link)s</id>
    <content type="html"> Length: approx %(length)d words. </content>
- </entry>""" % {'service': entry.service,'title': entry.title, 'homepage': entry.homepage , 'link':entry.link, 'tcreated': entry.printTime_created_rfc3339(), 'tupdated':entry.printTime_updated_rfc3339(), 'length': entry.length/5} )
+ </entry>""" % {'service': html_escape(entry.service),'title': entry.title, 'homepage': entry.homepage , 'link':entry.link, 'tcreated': entry.printTime_created_rfc3339(), 'tupdated':entry.printTime_updated_rfc3339(), 'length': entry.length/5} )
         output.append("</feed>")
         return "".join(output)
 

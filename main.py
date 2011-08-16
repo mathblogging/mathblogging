@@ -101,7 +101,7 @@ def feedparser_entry_to_guid(entry):
 class Feed(db.Model):
     posts_url = db.LinkProperty()
     homepage = db.StringProperty()
-    title = db.StringProperty()
+    title = db.StringProperty() # NOTE utf8 -- must be html-escaped in every html context!!!
     listtitle = db.StringProperty()
     person = db.StringProperty()
     category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution journal news carnival
@@ -213,13 +213,13 @@ class Entry(polymodel.PolyModel):
             else:
                 #   add entry to database!
                 x = cls()
-                x.service = html_escape(database_feed.title)
-                x.title = html_escape(entry['title'])
-                x.link = html_escape(entry['link'])
+                x.service = database_feed.title # NOTE utf8 -- must be html-escaped in every html context!!!
+                x.title = html_escape(entry['title']) # feedparser give utf8
+                x.link = html_escape(entry['link'])   # feedparser give utf8
                 x.length = len( get_feedparser_entry_content(entry) )
                 x.content = get_feedparser_entry_content(entry)
                 x.category = database_feed.category
-                x.homepage = html_escape(database_feed.homepage)
+                x.homepage = database_feed.homepage
                 try:
                     x.tags = [ string.capwords(tag.term) for tag in entry.tags ]
                 except AttributeError:
@@ -464,7 +464,7 @@ class RebootCommand(webapp.RequestHandler):
     def get(self):
         logging.info("Reboot")
         memcache.flush_all()
-        taskqueue.add(url="/allworker")
+        taskqueue.add(url="/allworker", method="GET")
         self.response.set_status(200)
 
 class CleanUpFeed(webapp.RequestHandler):
@@ -480,7 +480,7 @@ class CleanUpFeed(webapp.RequestHandler):
 class CleanUpDatastore(webapp.RequestHandler):
     def get(self):
         for feed in Feed.all():
-           taskqueue.add(url="/cleanupfeed",params={"feed_title":html_escape(feed.title)}, queue_name='cleanup-queue')
+           taskqueue.add(url="/cleanupfeed",params={"feed_title":feed.title}, queue_name='cleanup-queue')
         self.response.set_status(200)
            
 

@@ -48,5 +48,5 @@ class DateView(TemplatePage):
 	<a href="%(link)s" title="%(title)s">%(title)s</a>
       </div>
     </td>
-  </tr>""" % {'time': post.printShortTime_created(), 'homepage': post.homepage, 'service': post.service, 'title': post.title, 'link': post.link }
+  </tr>""" % {'time': post.printShortTime_created(), 'homepage': post.homepage, 'service': html_escape(post.service), 'title': post.title, 'link': post.link }
         return s + "</tbody></table>"

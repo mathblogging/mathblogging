@@ -34,7 +34,7 @@ class PlanetTag(TemplatePage):
   <div class="planetsubtitle">Posted on <a href="%(homepage)s" title="%(service)s">%(service)s</a> at %(tcreated)s.
   </div>
   <div class="planettags">
-     <i>Tags:</i> """ % {"link":entry.link, "title":entry.title, "homepage":entry.homepage, "service":entry.service, "tcreated":entry.printShortTime_created()} )
+     <i>Tags:</i> """ % {"link":entry.link, "title":entry.title, "homepage":entry.homepage, "service":html_escape(entry.service), "tcreated":entry.printShortTime_created()} )
             for tag in entry.tags:
                 output.append(tag)
                 output.append(", ")
