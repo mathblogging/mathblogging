@@ -80,6 +80,14 @@ def get_feedparser_entry_content(entry):
             return entry['summary']
         except AttributeError:
             return ""
+### read updated timestamp from entry
+def feedparser_entry_to_timestamp_updated(entry):
+    t = time.gmtime(0)
+    try:
+        t = entry.updated_parsed
+    except AttributeError:
+        pass
+    return datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
 ### creating a reliable guid for our own feeds
 def feedparser_entry_to_guid(entry):
     theid = None
@@ -201,42 +209,35 @@ class Entry(polymodel.PolyModel):
     @classmethod
     def generate_entry(cls, entry, feedparser_feed, database_feed):
         try:
-            # if entry is in database, i.e.,
-### PETER TRYING TO OPTIMIZE CODE
-#ORIGINAL            result = cls.all().filter("service=",database_feed.title).filter("guid=",feedparser_entry_to_guid(entry)).get()
-#FIRST ATTEMPT            result = cls.gql("WHERE guid = :1", feedparser_entry_to_guid(entry))[0]
-            if cls.gql("WHERE guid = :1", feedparser_entry_to_guid(entry)).count() != 0:
-               logging.info("guid exists: " + entry['title'])
-#ORIGINAL            if result != None:
-#ORIGINAL                #   update entry attributes if changed?
-#ORIGINAL               # pass
-            else:
-                #   add entry to database!
-                x = cls()
-                x.service = database_feed.title # NOTE utf8 -- must be html-escaped in every html context!!!
-                x.title = html_escape(entry['title']) # feedparser give utf8
-                x.link = html_escape(entry['link'])   # feedparser give utf8
-                x.length = len( get_feedparser_entry_content(entry) )
-                x.content = get_feedparser_entry_content(entry)
-                x.category = database_feed.category
-                x.homepage = database_feed.homepage
-                try:
-                    x.tags = [ string.capwords(tag.term) for tag in entry.tags ]
-                except AttributeError:
-                    x.tags = [ ]
-                t = time.gmtime(0)
-                try:
-                    t = entry.updated_parsed
-                except AttributeError:
-                    pass
-                x.timestamp_updated = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
-                try:
-                    t = entry.published_parsed
-                except AttributeError:
-                    pass
+            guid = feedparser_entry_to_guid(entry)
+            timestamp_updated = feedparser_entry_to_timestamp_updated(entry)
+            result = cls.gql("WHERE guid = :1", guid).get()
+            if result != None and result.timestamp_updated == timestamp_updated:
+                return # if nothing has changed we do nothing and return
+            x = result # by default we update the entry
+            if x == None:
+                x = cls() # if the entry does not exist, then we create a new one
+                logging.info("guid does not exist: " + entry['title'])
+            #   add entry to database!
+            x.service = database_feed.title # NOTE utf8 -- must be html-escaped in every html context!!!
+            x.title = html_escape(entry['title']) # feedparser give utf8
+            x.link = html_escape(entry['link'])   # feedparser give utf8
+            x.length = len( get_feedparser_entry_content(entry) )
+            x.content = get_feedparser_entry_content(entry)
+            x.category = database_feed.category
+            x.homepage = database_feed.homepage
+            try:
+                x.tags = [ string.capwords(tag.term) for tag in entry.tags ]
+            except AttributeError:
+                x.tags = [ ]
+            x.timestamp_updated = timestamp_updated
+            try:
+                t = entry.published_parsed
                 x.timestamp_created = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5])
-                x.guid = feedparser_entry_to_guid(entry)
-                x.put()
+            except AttributeError:
+                x.timestamp_created = timestamp_updated
+            x.guid = guid
+            x.put()
         except Exception, e:
             logging.warning("There was an error processing an Entry of the Feed :" + str(e))
 
