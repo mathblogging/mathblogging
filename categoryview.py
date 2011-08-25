@@ -7,6 +7,7 @@ class CategoryView(TemplatePage):
         categorylabel = pair[1]
         output = []
         output.append("""
+
         <h2 id="%(category)s"> %(caption)s <a href="#"> (Back to top) </a> </h2> 
         <ul class="feedbox-list">
         """ % {'category': categorylabel, 'caption': caption})
@@ -17,7 +18,7 @@ class CategoryView(TemplatePage):
             <h3> <a href="%(homepage)s">%(title)s </a> </h3>
 	    <ul>
 	    """ % { 'homepage': feed.homepage, 'title': feed.title })
-            for entry in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 7", feed.title):
+            for entry in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 3", feed.title):
                 output.append("""
                 <li><a href="%(link)s" title="%(title)s">%(title)s</a></li>
                 """ % {'link': entry.link, 'title': entry.title})
@@ -30,10 +31,12 @@ class CategoryView(TemplatePage):
         return "".join(output)
     def generateContent(self):
         s = """
+
         <p> The categories represent what we see as roughly the primary focus of each blog -- this supplements <a href="/planettag">PlanetTAG</a>.</p>
         <div class="tocbox"> 
         <ul>
         <li> <a href="#pure">Pure</a></li> 
+
         <li> <a href="#applied">Applied</a></li> 
         <li> <a href="#teacher">Teachers</a></li> 
         <li> <a href="#visual">Visualization</a></li> 
@@ -48,6 +51,7 @@ class CategoryView(TemplatePage):
         <li> <a href="#institution">Institutions</a></li> 
         <li> <a href="#news">News</a></li> 
         <li> <a href="#carnivals">Carnivals</a></li> 
+
         </ul>
         </div>
         """
@@ -69,3 +73,4 @@ class CategoryView(TemplatePage):
             ['Carnivals','carnival'],
         ]
         return s + " ".join([self.generateSection(pair) for pair in thelist])
+
