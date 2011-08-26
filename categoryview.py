@@ -18,7 +18,7 @@ class CategoryView(TemplatePage):
             <h3> <a href="%(homepage)s">%(title)s </a> </h3>
 	    <ul>
 	    """ % { 'homepage': feed.homepage, 'title': feed.title })
-            for entry in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 3", feed.title):
+            for entry in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 7", feed.title):
                 output.append("""
                 <li><a href="%(link)s" title="%(title)s">%(title)s</a></li>
                 """ % {'link': entry.link, 'title': entry.title})
