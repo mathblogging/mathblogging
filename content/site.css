@@ -276,6 +276,31 @@ text-decoration:none;
 {
 background-color:black;
 }
+
+.tocbox2 {
+list-style-type:none;
+
+margin:10px;
+padding-bottom:5ex;
+width:500px;
+}
+.tocbox2 li a
+{
+float:left;
+display:block;
+width: 400px;
+font-size:small;
+font-weight:bold;
+color:#FFFFFF;
+background-color:gray;
+text-align:center;
+padding:8px;
+text-decoration:none;
+}
+.tocbox2 a:hover
+{
+background-color:black;
+}
 /* ------------ End tocboxes --------------- */
 
 

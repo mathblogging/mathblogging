@@ -491,7 +491,7 @@ from dateview import DateView
 from dateviewresearch import DateViewResearch
 from dateviewteacher import DateViewTeacher
 from dateviewhisartvis import DateViewHisArtVis
-from categoryview import CategoryView
+from categoryview import *
 from feedhandler import *
 from planettag import *
 from planetmo import *
@@ -518,6 +518,9 @@ def main():
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),
+                                        ('/bytype1', CategoryView1),
+                                        ('/bytype2', CategoryView2),
+                                        ('/bytype3', CategoryView3),
                                         ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateViewResearch),
