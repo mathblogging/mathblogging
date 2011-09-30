@@ -8,7 +8,7 @@ class TagListWorker(webapp.RequestHandler):
     def get(self):
         try:
             logging.info("TagListWorker: generating tag list")
-            all_tag = [ tag for entry in Post.all() for tag in entry.tags ]
+            all_tag = [ tag for entry in Post.gql("ORDER BY timestamp_created DESC LIMIT 10000") for tag in entry.tags ]
             common_tags = counter.Counter(all_tag)
             memcache.set(memcachekey, common_tags, 10800)
         except Exception, e:

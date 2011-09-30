@@ -310,18 +310,26 @@ class CachedPage(webapp.RequestHandler):
     # NOTE: the empty string as cacheName turns off caching
     cacheName = "default"
     cacheTime = 2700
+    def write_to_datastore(self):
+        x = Stored_Page()
+        x.html_content = self.generatePage()
+        x.name = self.cacheName
+        x.put()
     def get(self):
-        if self.cacheName == "":
+        if self.cacheName == "": ## Is this superfluous? We set the name to default anyway?
             self.response.out.write(self.generatePage())
         else:
             if not memcache.get(self.cacheName):
-                memcache.set(self.cacheName,self.generatePage(),self.cacheTime)
-            #self.response.headers['Cache-Control'] = 'public; max-age=2700;'
+                  if not Stored_Page.gql("WHERE name = :1", self.cacheName).get():
+                     logging.info("Writing to datastore: " + self.cacheName)
+                     self.write_to_datastore()
+                  memcache.set(self.cacheName,Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content,self.cacheTime)
             self.response.out.write(memcache.get(self.cacheName))
 
 class TemplatePage(CachedPage):
     def generatePage(self):
         return header + menu + "<div class='content'>" + self.generateContent() + disqus + "</div>" + footer + "</body></html>"
+
 
 class SimpleCheetahPage(CachedPage):
     templateName = "default.tmpl"
@@ -330,6 +338,7 @@ class SimpleCheetahPage(CachedPage):
         path = os.path.join(os.path.dirname(__file__), self.templateName)
         return str(Template( file = path, searchList = (template_values,) ))
 
+        
 ### static pages
 
 class StartPage(SimpleCheetahPage):
@@ -457,6 +466,9 @@ class AllWorker(webapp.RequestHandler):
             taskqueue.add(url="/fetch", params={'url': feed.posts_url})
         taskqueue.add(url="/taglistworker", method="GET")
         pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+        for page in Stored_Page.all():
+            memcache.delete(page.name)
+            page.delete()
         for page in pages_to_cache_list:
             taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
@@ -507,6 +519,14 @@ class ClearPageCacheCommand(webapp.RequestHandler):
         self.response.set_status(200)
 
 
+#### TESTING Storing generated html in datastore
+
+class Stored_Page(db.Model):
+    html_content = db.TextProperty()
+    name = db.StringProperty()
+
+
+
 ### the main function.
 
 def main():
@@ -518,9 +538,6 @@ def main():
                                         ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),
-                                        ('/bytype1', CategoryView1),
-                                        ('/bytype2', CategoryView2),
-                                        ('/bytype3', CategoryView3),
                                         ('/weekly-picks', WeeklyPicks),
                                         ('/bydate', DateView),
                                         ('/byresearchdate', DateViewResearch),
