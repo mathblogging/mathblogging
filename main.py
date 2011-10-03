@@ -113,6 +113,7 @@ class Feed(db.Model):
     listtitle = db.StringProperty()
     person = db.StringProperty()
     category = db.StringProperty() # history fun general commercial art visual pure applied teacher journalism community institution journal news carnival
+    taglist = db.StringListProperty()
     language = db.StringProperty()
     priority = db.IntegerProperty()
     favicon = db.StringProperty()
@@ -132,6 +133,7 @@ class Feed(db.Model):
         self.comments_week = Comment.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
         self.posts_week = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
         self.posts_month = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(30)).count()
+        self.taglist = [ tag for post in Post.gql("WHERE service = :1", self.title) for tag in post.tags]
         #self.comments_day = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(1)).count()
         #self.comments_week = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
         #self.posts_week = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
@@ -237,6 +239,15 @@ class Entry(polymodel.PolyModel):
             except AttributeError:
                 x.timestamp_created = timestamp_updated
             x.guid = guid
+            ############################# WHY DOES IT NOT DO ANYTHING??? AND WHY DO WE HAVE TO ADD DUMMYS TO test_collection???
+            ##################### Solution: moved to feed. Probably less effective, but not a problem yet.
+#            for feed in Feed.gql("WHERE title = :1", x.service):
+#                feed.taglist.extend(x.tags)
+#                try:
+#                    feed.put()
+#                except Exception, e:
+#                    logging.warning(str(e) + "Failed adding tags to taglist " + feed.title) 
+#                logging.info("Success adding tags to taglist " + feed.title)
             x.put()
         except Exception, e:
             logging.warning("There was an error processing an Entry of the Feed :" + str(e))
@@ -464,8 +475,8 @@ class AllWorker(webapp.RequestHandler):
         for feed in Feed.all():
             #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
             taskqueue.add(url="/fetch", params={'url': feed.posts_url})
-        taskqueue.add(url="/taglistworker", method="GET")
-        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+#        taskqueue.add(url="/taglistworker", method="GET")
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planettag", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
         for page in Stored_Page.all():
             memcache.delete(page.name)
             page.delete()
@@ -551,7 +562,7 @@ def main():
                                         ('/cse-config', CSEConfig),
                                         ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
-                                        ('/taglistworker', TagListWorker),
+#                                        ('/taglistworker', TagListWorker),
                                         ('/reboot', RebootCommand),
                                         ('/feed_pure', FeedHandlerPure),
                                         ('/feed_applied', FeedHandlerApplied),

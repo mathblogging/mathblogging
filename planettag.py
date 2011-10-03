@@ -4,19 +4,19 @@ import counter
         
 memcachekey = "TagListMemCacheKey"
 
-class TagListWorker(webapp.RequestHandler):
-    def get(self):
-        try:
-            logging.info("TagListWorker: generating tag list")
-            all_tag = [ tag for entry in Post.gql("ORDER BY timestamp_created DESC LIMIT 10000") for tag in entry.tags ]
-            common_tags = counter.Counter(all_tag)
-            memcache.set(memcachekey, common_tags, 10800)
-        except Exception, e:
-            self.response.set_status(200)
-            logging.warning("TagListWorker failed: \n" + str(e))
+#class TagListWorker(webapp.RequestHandler):
+#    def get(self):
+#        try:
+#            logging.info("TagListWorker: generating tag list")
+#            all_tag = [ tag for entry in Post.gql("ORDER BY timestamp_created DESC LIMIT 10000") for tag in entry.tags ]
+#            common_tags = counter.Counter(all_tag)
+#            memcache.set(memcachekey, common_tags, 10800)
+#        except Exception, e:
+#            self.response.set_status(200)
+#            logging.warning("TagListWorker failed: \n" + str(e))
 
 class PlanetTag(TemplatePage):
-    cacheName = ""
+    cacheName = "PlanetTag"
     def generateContent(self):
         tagname = self.request.get('content')
         logging.info("PlanetTag: tagname '" + tagname + "'")
@@ -61,12 +61,18 @@ class PlanetTag(TemplatePage):
        * title: an HTML title for the span that will contain the word(s)
        */
       var word_list = [ """ )
-        taglist = memcache.get(memcachekey)
-        logging.info("taglist is " + str(taglist))
-        if taglist:
-            for tag, weight in memcache.get(memcachekey).iteritems():
-                if tag != "Uncategorized" and tag != "Uncategorized>" and tag != "Mathematics" and tag != "Math" and tag != "Maths" and tag != "Http://gdata.youtube.com/schemas/2007#video" and repr(tag) != repr(u'Matem\xe1ticas') and tag != "Matematica" and weight > 10:
-                    output.append(""" {text: "%(text)s", weight: %(weight)s, url: "/planettag?content=%(text)s"}, """ % {"text":tag, "weight": weight} )
+################## STRANGE: counter.counter didn't work anymore: error message from appengine "too large to process" -- dictionary really too large????
+        global_taglist = [ tag for feed in Feed.all() for tag in feed.taglist]
+        global_tagset = set(global_taglist)
+        logging.info("taglist is " + str(global_taglist))
+        if global_taglist:
+            weighted_taglist = []
+            for tag in global_tagset:
+                tag_weight = global_taglist.count(tag)
+                weighted_taglist.append([tag, tag_weight])
+            for tag_weight in weighted_taglist:
+                if tag_weight[0] != "Uncategorized" and tag_weight[0] != "Uncategorized>" and tag_weight[0] != "Mathematics" and tag_weight[0] != "Math" and tag_weight[0] != "Maths" and tag_weight[0] != "Http://gdata.youtube.com/schemas/2007#video" and repr(tag_weight[0]) != repr(u'Matem\xe1ticas') and tag_weight[0] != "Matematica" and tag_weight[1]>10 :
+                    output.append(""" {text: "%(text)s", weight: %(weight)s, url: "/planettag?content=%(text)s"}, """ % {"text":tag_weight[0], "weight": tag_weight[1] } )
         output.append( """
       ];
       window.onload = function() {
