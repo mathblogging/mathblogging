@@ -40,6 +40,9 @@ from google.appengine.api.labs import taskqueue
 import cgi
 from google.appengine.ext.webapp.util import run_wsgi_app
 
+#import pickle # for listoflist in datastore
+from django.utils import simplejson
+
 
 ### some variables like header, footer etc.
 from temp_global import *
@@ -321,7 +324,7 @@ class CachedPage(webapp.RequestHandler):
     # NOTE: the empty string as cacheName turns off caching
     cacheName = "default"
     cacheTime = 2700
-    def write_to_datastore(self):
+    def write_page_to_datastore(self):
         x = Stored_Page()
         x.html_content = self.generatePage()
         x.name = self.cacheName
@@ -333,7 +336,7 @@ class CachedPage(webapp.RequestHandler):
             if not memcache.get(self.cacheName):
                   if not Stored_Page.gql("WHERE name = :1", self.cacheName).get():
                      logging.info("Writing to datastore: " + self.cacheName)
-                     self.write_to_datastore()
+                     self.write_page_to_datastore()
                   memcache.set(self.cacheName,Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content,self.cacheTime)
             self.response.out.write(memcache.get(self.cacheName))
 
@@ -472,14 +475,16 @@ class FetchWorker(webapp.RequestHandler):
 class AllWorker(webapp.RequestHandler):
     def get(self):
         logging.info("AllWorker")
+        for stored_list in Stored_List.gql("WHERE name = 'Global_Weighted_Tasklist'"):
+            stored_list.delete()
+        for page in Stored_Page.all():
+            memcache.delete(page.name)
+            page.delete()
         for feed in Feed.all():
             #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
             taskqueue.add(url="/fetch", params={'url': feed.posts_url})
 #        taskqueue.add(url="/taglistworker", method="GET")
         pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planettag", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
-        for page in Stored_Page.all():
-            memcache.delete(page.name)
-            page.delete()
         for page in pages_to_cache_list:
             taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
@@ -506,6 +511,47 @@ class CleanUpDatastore(webapp.RequestHandler):
         for feed in Feed.all():
            taskqueue.add(url="/cleanupfeed",params={"feed_title":feed.title}, queue_name='cleanup-queue')
         self.response.set_status(200)
+
+### TESTING Storing generated html in datastore
+
+class Stored_Page(db.Model):
+    html_content = db.TextProperty()
+    name = db.StringProperty()
+
+
+#class GenericListProperty(db.Property):
+#    data_type = db.Blob
+#    def validate(self, value):
+#      if type(value) is not list:
+#        raise db.BadValueError('Property %s must be a list, not %s.' % (self.name, type(value), value))
+#      return value
+#
+#    def get_value_for_datastore(self, model_instance):
+#      return db.Blob(pickle.dumps(getattr(model_instance,self.name)))
+#
+#    def make_value_from_datastore(self, value):
+#      return pickle.loads(value)
+    
+class JsonProperty(db.TextProperty):
+	def validate(self, value):
+		return value
+
+	def get_value_for_datastore(self, model_instance):
+		result = super(JsonProperty, self).get_value_for_datastore(model_instance)
+		result = simplejson.dumps(result)
+		return db.Text(result)
+
+	def make_value_from_datastore(self, value):
+		try:
+			value = simplejson.loads(str(value))
+		except:
+			pass
+
+		return super(JsonProperty, self).make_value_from_datastore(value)
+
+class Stored_List(db.Model):
+   content = JsonProperty()
+   name = db.StringProperty()
            
 
 ### Dynamically generated web pages -- the main content of the site
@@ -523,27 +569,22 @@ from grid import *
 from weeklypicks import *
 from statsview import *
 
-class ClearPageCacheCommand(webapp.RequestHandler):
-    def get(self):
-        logging.info("Clear Page Cache")
-        memcache.delete_multi(["StartPage","AboutPage","FeedsPage","CategoryView","WeeklyPicks","DateView","StatsView"])
-        self.response.set_status(200)
+#####obsolete with datastore storage
+#class ClearPageCacheCommand(webapp.RequestHandler):
+    #def get(self):
+        #logging.info("Clear Page Cache")
+        #memcache.delete_multi(["StartPage","AboutPage","FeedsPage","CategoryView","WeeklyPicks","DateView","StatsView"])
+        #self.response.set_status(200)
 
 
-#### TESTING Storing generated html in datastore
-
-class Stored_Page(db.Model):
-    html_content = db.TextProperty()
-    name = db.StringProperty()
-
-
+  
 
 ### the main function.
 
 def main():
   application = webapp.WSGIApplication(
                                        [('/', StartPage),
-                                        ('/clearpagecache', ClearPageCacheCommand),
+                                        #('/clearpagecache', ClearPageCacheCommand),
                                         ('/cleanupdatastore', CleanUpDatastore),
                                         ('/cleanupfeed', CleanUpFeed),
                                         ('/about', AboutPage),
@@ -562,7 +603,7 @@ def main():
                                         ('/cse-config', CSEConfig),
                                         ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
-#                                        ('/taglistworker', TagListWorker),
+                                        ('/taglistworker', TagListWorker),
                                         ('/reboot', RebootCommand),
                                         ('/feed_pure', FeedHandlerPure),
                                         ('/feed_applied', FeedHandlerApplied),
