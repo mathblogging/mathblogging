@@ -5,3 +5,9 @@ cron:
 - description: clean up datastore
   url: /cleanupdatastore
   schedule: every monday 02:00
+- description: generate feedtaglists
+  url: /feedtaglistworker
+  schedule: every 12 hours
+- description: generate global taglist
+  url: /globaltaglistworker
+  schedule: every 12 hours

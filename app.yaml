@@ -34,6 +34,15 @@ handlers:
 - url: /cleanupfeed
   script: main.py
   login: admin
+- url: /feedtaglistfetch
+  script: main.py
+  login: admin
+- url: /feedtaglistworker
+  script: main.py
+  login: admin
+- url: /globaltaglistworker
+  script: main.py
+  login: admin
 - url: .*
   script: main.py
   

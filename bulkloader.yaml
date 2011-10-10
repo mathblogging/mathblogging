@@ -83,3 +83,6 @@ transformers:
     - property: posts_month
       external_name: posts_month
 
+    - property: taglist
+      external_name: taglist
+      import_transform: eval

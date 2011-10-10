@@ -48,6 +48,69 @@ from django.utils import simplejson
 from temp_global import *
 
 
+# truncating html via http://stackoverflow.com/questions/4970426/html-truncating-in-python
+import re
+def truncate_html_words(s, num):
+    """
+    Truncates html to a certain number of words (not counting tags and comments).
+    Closes opened tags if they were correctly closed in the given html.
+    """
+    length = int(num)
+    if length <= 0:
+        return ''
+    html4_singlets = ('br', 'col', 'link', 'base', 'img', 'param', 'area', 'hr', 'input')
+    # Set up regular expressions
+    re_words = re.compile(r'&.*?;|<.*?>|([A-Za-z0-9][\w-]*)')
+    re_tag = re.compile(r'<(/)?([^ ]+?)(?: (/)| .*?)?>')
+    # Count non-HTML words and keep note of open tags
+    pos = 0
+    ellipsis_pos = 0
+    words = 0
+    open_tags = []
+    while words <= length:
+        m = re_words.search(s, pos)
+        if not m:
+            # Checked through whole string
+            break
+        pos = m.end(0)
+        if m.group(1):
+            # It's an actual non-HTML word
+            words += 1
+            if words == length:
+                ellipsis_pos = pos
+            continue
+        # Check for tag
+        tag = re_tag.match(m.group(0))
+        if not tag or ellipsis_pos:
+            # Don't worry about non tags or tags after our truncate point
+            continue
+        closing_tag, tagname, self_closing = tag.groups()
+        tagname = tagname.lower()  # Element names are always case-insensitive
+        if self_closing or tagname in html4_singlets:
+            pass
+        elif closing_tag:
+            # Check for match in open tags list
+            try:
+                i = open_tags.index(tagname)
+            except ValueError:
+                pass
+            else:
+                # SGML: An end tag closes, back to the matching start tag, all unclosed intervening start tags with omitted end tags
+                open_tags = open_tags[i+1:]
+        else:
+            # Add it to the start of the open tags list
+            open_tags.insert(0, tagname)
+    if words <= length:
+        # Don't try to close tags if we don't need to truncate
+        return s
+    out = s[:ellipsis_pos] + ' ...'
+    # Close any tags still open
+    for tag in open_tags:
+        out += '</%s>' % tag
+    # Return string
+    return out
+
+
 ## Escape HTML entities.
 html_escape_table = {
     "&": "&amp;",
@@ -108,7 +171,12 @@ def feedparser_entry_to_guid(entry):
         except AttributeError:
             pass
     return theid
+
+
+###################################################
 ### The first major class: Feed
+###################################################
+
 class Feed(db.Model):
     posts_url = db.LinkProperty()
     homepage = db.StringProperty()
@@ -136,16 +204,12 @@ class Feed(db.Model):
         self.comments_week = Comment.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
         self.posts_week = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(7)).count()
         self.posts_month = Post.gql("WHERE service = :1 AND timestamp_created > :2", self.title, datetime.datetime.now() - datetime.timedelta(30)).count()
-        self.taglist = [ tag for post in Post.gql("WHERE service = :1", self.title) for tag in post.tags]
-        #self.comments_day = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(1)).count()
-        #self.comments_week = Comment.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
-        #self.posts_week = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(7)).count()
-        #self.posts_month = Post.all().filter("service =",self.title).filter("timestamp_created > ", datetime.datetime.now() - datetime.timedelta(30)).count()
         logging.info("Feed " + self.title + " has stats " + str(self.comments_day) + " " + str(self.comments_week) + " " + str(self.posts_month) + " " + str(self.posts_week))
         self.put()
-    #def entries(self,num=None):
-    #    result = [entry for entry in Post.all().filter("service=",self.title)]
-    #    return result[0:num]
+    def update_taglist(self):
+        self.taglist = [ tag for post in Post.gql("WHERE service = :1", self.title) for tag in post.tags]
+        logging.info("Feed " + self.title + " taglist updated ")
+        self.put()
     def fetch_feed_and_generate_entries(self,url,_type):
         if url == "":
             return
@@ -170,29 +234,13 @@ class Feed(db.Model):
                 logging.warning("There was an error parsing the feed " + url + ":" + str(e))
     def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
         return add_slash(strip_http(self.homepage))
-    #def top_entries(self):
-    #    return self.entries()[0:10]
-    #def template_top(self):
-    #    return {'title': self.title, 'entries': self.top_entries() }
-    # comments_entries the abstract construct
-    #def comments_entries(self,num=None):
-    #    if not memcache.get(self.comments):
-    #        return [] # TODO: schedule a fetch-task !
-    #    if num == None:
-    #        return memcache.get(self.comments)
-    #    result = memcache.get(self.comments)
-    #    return result[0:num]
 
 
 
 
-
-
-
-
+###################################################
 #### The second major class: Entry
-
-
+###################################################
 
 class Entry(polymodel.PolyModel):
     title = db.TextProperty()
@@ -202,7 +250,7 @@ class Entry(polymodel.PolyModel):
     timestamp_created = db.DateTimeProperty()
     timestamp_updated = db.DateTimeProperty()
     length = db.IntegerProperty()
-    content = db.TextProperty()
+    content = db.TextProperty() ## TODO change to blob property -- size constraints of textproperty are a problem
     tags = db.StringListProperty()
     category = db.StringProperty()
     guid = db.StringProperty()
@@ -222,13 +270,14 @@ class Entry(polymodel.PolyModel):
             x = result # by default we update the entry
             if x == None:
                 x = cls() # if the entry does not exist, then we create a new one
-                logging.info("guid does not exist: " + entry['title'])
+                #logging.info("guid does not exist: " + entry['title'])
             #   add entry to database!
             x.service = database_feed.title # NOTE utf8 -- must be html-escaped in every html context!!!
             x.title = html_escape(entry['title']) # feedparser give utf8
             x.link = html_escape(entry['link'])   # feedparser give utf8
             x.length = len( get_feedparser_entry_content(entry) )
-            x.content = get_feedparser_entry_content(entry)
+##OLD            x.content = get_feedparser_entry_content(entry)
+            x.content = truncate_html_words(get_feedparser_entry_content(entry), 100)
             x.category = database_feed.category
             x.homepage = database_feed.homepage
             try:
@@ -242,15 +291,6 @@ class Entry(polymodel.PolyModel):
             except AttributeError:
                 x.timestamp_created = timestamp_updated
             x.guid = guid
-            ############################# WHY DOES IT NOT DO ANYTHING??? AND WHY DO WE HAVE TO ADD DUMMYS TO test_collection???
-            ##################### Solution: moved to feed. Probably less effective, but not a problem yet.
-#            for feed in Feed.gql("WHERE title = :1", x.service):
-#                feed.taglist.extend(x.tags)
-#                try:
-#                    feed.put()
-#                except Exception, e:
-#                    logging.warning(str(e) + "Failed adding tags to taglist " + feed.title) 
-#                logging.info("Success adding tags to taglist " + feed.title)
             x.put()
         except Exception, e:
             logging.warning("There was an error processing an Entry of the Feed :" + str(e))
@@ -281,7 +321,7 @@ class Entry(polymodel.PolyModel):
         except TypeError:
             res = ""
         return res
-### Is gettime used anywhere???
+### TODO Is gettime used anywhere???
     def gettime(self): #REMINDER for future code reading: change name to gettime_created -- after Felix fixes/improves statsview to fix the bug
         if self.timestamp_created == None:
             return time.gmtime(0)
@@ -305,232 +345,13 @@ class Comment(Entry):
     iamacomment = db.StringProperty()
 
 
-### The smaller classes:  preliminary work for generating actual webpages
-
-
-class MainPage(webapp.RequestHandler):
-  def get(self):
-      self.redirect("/content/start.html")
-
-class QueryFactory:
-  def get(self):
-      return Feed.all()
-
-class GqlQueryFactory:
-  def get(self, string):
-      return db.GqlQuery(string)
-
-class CachedPage(webapp.RequestHandler):
-    # NOTE: the empty string as cacheName turns off caching
-    cacheName = "default"
-    cacheTime = 2700
-    def write_page_to_datastore(self):
-        x = Stored_Page()
-        x.html_content = self.generatePage()
-        x.name = self.cacheName
-        x.put()
-    def get(self):
-        if self.cacheName == "": ## Is this superfluous? We set the name to default anyway?
-            self.response.out.write(self.generatePage())
-        else:
-            if not memcache.get(self.cacheName):
-                  if not Stored_Page.gql("WHERE name = :1", self.cacheName).get():
-                     logging.info("Writing to datastore: " + self.cacheName)
-                     self.write_page_to_datastore()
-                  memcache.set(self.cacheName,Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content,self.cacheTime)
-            self.response.out.write(memcache.get(self.cacheName))
-
-class TemplatePage(CachedPage):
-    def generatePage(self):
-        return header + menu + "<div class='content'>" + self.generateContent() + disqus + "</div>" + footer + "</body></html>"
-
-
-class SimpleCheetahPage(CachedPage):
-    templateName = "default.tmpl"
-    def generatePage(self):
-        template_values = { 'qf':  QueryFactory(), 'gqf': GqlQueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), self.templateName)
-        return str(Template( file = path, searchList = (template_values,) ))
-
-        
-### static pages
-
-class StartPage(SimpleCheetahPage):
-    cacheName = "StartPage"
-    templateName = "start.tmpl"
-
-class AboutPage(SimpleCheetahPage):
-    cacheName = "AboutPage"
-    templateName = "about.tmpl"
-
-class FeedsPage(SimpleCheetahPage):
-    cacheName = "FeedsPage"
-    templateName = "feeds.tmpl"
-
-### the old Dynamic pages -- OBSOLETE?
-
-#class CategoryView(SimpleCheetahPage):
-#    cacheName = "CategoryView"
-#    templateName = "bycategory.tmpl"
-
-class WeeklyPicks(SimpleCheetahPage):
-    cacheName = "WeeklyPicks"
-    # TODO: do everything in template???
-    def generatePage(self):
-        # ############ PROBLEM SOLVED ############
-        # This is how to test list membership (even though it is counter-intuitive), see:
-        #  http://wenku.baidu.com/view/7861b3f9aef8941ea76e0562.html
-        #  http://code.google.com/p/typhoonae/issues/detail?id=40
-        # 
-        picks = Post.gql("WHERE service = 'Mathblogging.org - the Blog' AND tags = 'weekly picks' ORDER BY timestamp_created LIMIT 15")
-        template_values = { 'qf': QueryFactory(), 'picks_entries': picks, 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
-        
-        path = os.path.join(os.path.dirname(__file__), 'weekly_picks.tmpl')
-        return str(Template( file = path, searchList = (template_values,) ))
-
-class DateResearchView(CachedPage):
-    cacheName = "DateResearchView"
-    # TODO: do everything in template???
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 
-                            'allentries': Post.gql("WHERE category IN ['pure','applied'] ORDER BY timestamp_created LIMIT 150"), 
-                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-
-        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class DateHisArtVisView(CachedPage):
-    cacheName = "DateHisArtVisView"
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 
-                            'allentries': Post.gql("WHERE category IN ['visual','history','art'] ORDER BY timestamp_created LIMIT 150"),
-                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-
-        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class DateTeacherView(CachedPage):
-    cacheName = "DateTeacherView"
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 
-                            'allentries': Post.gql("WHERE category = 'teacher' ORDER BY timestamp_created LIMIT 150"),
-                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-
-        path = os.path.join(os.path.dirname(__file__), 'bydate.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-class PlanetMO(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 
-                            'moentries': Post.gql("WHERE tags IN ['mathoverflow','mo','planetmo'] ORDER BY timestamp_created LIMIT 50"), 
-                            'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
-    
-        path = os.path.join(os.path.dirname(__file__), 'planetmo.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-# Database output
-class CsvView(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
-    
-        path = os.path.join(os.path.dirname(__file__), 'database.tmpl')
-        self.response.headers['Content-Type'] = 'text/csv'
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-## Database OPML output
-#class OPMLView(webapp.RequestHandler):
-#    def get(self):
-#        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header}
-#    
-#        path = os.path.join(os.path.dirname(__file__), 'opml.tmpl')
-#        self.response.headers['Content-Type'] = 'text/xml'
-#        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-#### CSE = google custom search engine
-class CSEConfig(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'qf':  QueryFactory(), 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-    
-        path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
-
-
-### Worker classes: downloading the feeds
-class FetchWorker(webapp.RequestHandler):
-    def post(self):
-        try:
-            url = self.request.get('url')
-            logging.info("FetchWorker: " + url)
-            if url:
-#ORIGINAL                feed = Feed.all().filter("posts_url =", url).get()
-                feed = Feed.gql("WHERE posts_url = :1", url).get()
-                if feed:
-                    feed.update_database()
-            self.response.set_status(200)
-            logging.info("FetchWorker done: " + url)
-        except Exception,e:
-            self.response.set_status(503)
-            logging.warning("FetchWorker failed: " + url + "\n" + str(e))
-### QUESTION: WHY CAN"T WE PASS feed???
-class AllWorker(webapp.RequestHandler):
-    def get(self):
-        logging.info("AllWorker")
-        for stored_list in Stored_List.gql("WHERE name = 'Global_Weighted_Tasklist'"):
-            stored_list.delete()
-        for page in Stored_Page.all():
-            memcache.delete(page.name)
-            page.delete()
-        for feed in Feed.all():
-            #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
-            taskqueue.add(url="/fetch", params={'url': feed.posts_url})
-#        taskqueue.add(url="/taglistworker", method="GET")
-        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planettag", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
-        for page in pages_to_cache_list:
-            taskqueue.add(url=page, method="GET")
-        self.response.set_status(200)
- 
-class RebootCommand(webapp.RequestHandler):
-    def get(self):
-        logging.info("Reboot")
-        memcache.flush_all()
-        taskqueue.add(url="/allworker", method="GET")
-        self.response.set_status(200)
-
-class CleanUpFeed(webapp.RequestHandler):
-    def post(self):
-        feed_title = self.request.get("feed_title")
-        logging.info("Clean Up Feed " + feed_title)
-        for post in Post.gql("WHERE service = :1 AND timestamp_updated < :2 ORDER BY timestamp_updated DESC OFFSET 30", feed_title, datetime.datetime.now() - datetime.timedelta(30)):
-            post.delete()
-        for comment in Comment.gql("WHERE service = :1 AND timestamp_updated < :2", feed_title, datetime.datetime.now() - datetime.timedelta(7)):
-            comment.delete()
-        self.response.set_status(200)
-        
-class CleanUpDatastore(webapp.RequestHandler):
-    def get(self):
-        for feed in Feed.all():
-           taskqueue.add(url="/cleanupfeed",params={"feed_title":feed.title}, queue_name='cleanup-queue')
-        self.response.set_status(200)
-
-### TESTING Storing generated html in datastore
+#######################################
+### Storing for caching
+#######################################
 
 class Stored_Page(db.Model):
     html_content = db.TextProperty()
     name = db.StringProperty()
-
-
-#class GenericListProperty(db.Property):
-#    data_type = db.Blob
-#    def validate(self, value):
-#      if type(value) is not list:
-#        raise db.BadValueError('Property %s must be a list, not %s.' % (self.name, type(value), value))
-#      return value
-#
-#    def get_value_for_datastore(self, model_instance):
-#      return db.Blob(pickle.dumps(getattr(model_instance,self.name)))
-#
-#    def make_value_from_datastore(self, value):
-#      return pickle.loads(value)
     
 class JsonProperty(db.TextProperty):
 	def validate(self, value):
@@ -552,11 +373,218 @@ class JsonProperty(db.TextProperty):
 class Stored_List(db.Model):
    content = JsonProperty()
    name = db.StringProperty()
-           
 
-### Dynamically generated web pages -- the main content of the site
 
-from dateview import DateView
+#######################################
+### THE PAGE CONSTRUCTS:  constructs for caching and generating
+#######################################
+
+
+
+### caching pages in datastore and memcache
+
+class CachedPage(webapp.RequestHandler):
+    ### TODO is cachName, cacheTime still relevant?
+    cacheName = "default"
+    cacheTime = 2700
+    def write_page_to_datastore(self):
+        x = Stored_Page()
+        x.html_content = self.generatePage()
+        x.name = self.cacheName
+        x.put()
+    def get(self):
+        if self.cacheName == "": ## the empty string as cacheName turns off caching (e.g. PlanetTAG)
+            self.response.out.write(self.generatePage())
+        else:
+            if not memcache.get(self.cacheName):
+                  if not Stored_Page.gql("WHERE name = :1", self.cacheName).get():
+                     logging.info("Writing to datastore: " + self.cacheName)
+                     self.write_page_to_datastore()
+                  try:
+                     content = Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content
+                     memcache.set(self.cacheName,content,self.cacheTime)                  
+                  except Exception, e:
+                     logging.warning("Error setting memcache from Stored_Page object :" + str(e))
+            self.response.out.write(memcache.get(self.cacheName))
+
+### Adding header, footer, menu
+
+class TemplatePage(CachedPage):
+    def generatePage(self):
+        return header + menu + "<div class='content'>" + self.generateContent() + disqus + "</div>" + footer + "</body></html>"
+
+
+### TODO remove leftover static cheetah pages???
+
+class SimpleCheetahPage(CachedPage):
+    templateName = "default.tmpl"
+    def generatePage(self):
+        template_values = { 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        path = os.path.join(os.path.dirname(__file__), self.templateName)
+        return str(Template( file = path, searchList = (template_values,) ))
+
+        
+
+#################################
+### Generating the static pages 
+#################################
+
+
+class StartPage(SimpleCheetahPage):
+    cacheName = "StartPage"
+    templateName = "start.tmpl"
+
+class FeedsPage(SimpleCheetahPage):
+    cacheName = "FeedsPage"
+    templateName = "feeds.tmpl"
+
+
+#################################
+#### CSE = google custom search engine
+#################################
+
+### TODO is completely outdated!!!!!
+
+class CSEConfig(webapp.RequestHandler):
+    def get(self):
+        template_values = { 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+        path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
+        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+
+
+#################################
+### WORKER CLASSES downloading the feeds
+#################################
+
+class FetchWorker(webapp.RequestHandler):
+    def post(self):
+        try:
+            url = self.request.get('url')
+            logging.info("FetchWorker: " + url)
+            if url:
+                feed = Feed.gql("WHERE posts_url = :1", url).get()
+                if feed:
+                    feed.update_database()
+            self.response.set_status(200)
+            logging.info("FetchWorker done: " + url)
+        except Exception,e:
+            self.response.set_status(503)
+            logging.warning("FetchWorker failed: " + url + "\n" + str(e))
+
+class AllWorker(webapp.RequestHandler):
+    def get(self):
+        logging.info("AllWorker")
+        for page in Stored_Page.all():
+            memcache.delete(page.name)
+            page.delete()
+        for feed in Feed.all():
+            #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
+            taskqueue.add(url="/fetch", params={'url': feed.posts_url})
+
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planettag", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+        for page in pages_to_cache_list:
+            taskqueue.add(url=page, method="GET")
+        self.response.set_status(200)
+
+
+#################################
+### GENERATING TAGLISTS PER FEED AND GLOBAL -- moved out of allworker to enable separate cron jobs
+#################################
+
+class FeedTagListFetchWorker(webapp.RequestHandler):
+    def post(self):
+        try:
+            url = self.request.get('url')
+            logging.info("FeedTagListFetchWorker: " + url)
+            if url:
+                feed = Feed.gql("WHERE posts_url = :1", url).get()
+                if feed:
+                    feed.update_taglist()
+            self.response.set_status(200)
+            logging.info("TagListFetchWorker done: " + url)
+        except Exception,e:
+            self.response.set_status(503)
+            logging.warning("TagListFetchWorker failed: " + url + "\n" + str(e))
+
+class FeedTagListWorker(webapp.RequestHandler):
+    def get(self):
+        logging.info("FeedTagListWorker")
+        for feed in Feed.all():
+            taskqueue.add(url="/feedtaglistfetch", params={'url': feed.posts_url})
+        taskqueue.add(url="/globaltaglistworker", method="GET")
+        self.response.set_status(200)
+
+class GlobalTagListWorker(webapp.RequestHandler):
+    def get(self):
+        for stored_list in Stored_List.gql("WHERE name = 'Global_Weighted_Taglist'"):
+            stored_list.delete()
+            #logging.info("Stored_List deleted: " + stored_list.name)
+        x = Stored_List()
+        x.name = 'Global_Weighted_Taglist'
+        global_taglist = [ tag for feed in Feed.gql("WHERE category IN :1", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']) for tag in feed.taglist]
+        global_tagset = set(global_taglist)
+        #logging.info("taglist is " + str(global_taglist))
+        weighted_taglist = []
+        for tag in global_tagset:
+            tag_weight = global_taglist.count(tag)
+            weighted_taglist.append([tag, tag_weight])
+        x.content = weighted_taglist
+        x.put()
+        self.response.set_status(200)
+
+
+#################################
+### CLEANING UP THE DATASTORE // DELETING OLD ENTRIES
+#################################
+
+class CleanUpFeed(webapp.RequestHandler):
+    def post(self):
+        feed_title = self.request.get("feed_title")
+        logging.info("Clean Up Feed " + feed_title)
+        for post in Post.gql("WHERE service = :1 AND timestamp_updated < :2 ORDER BY timestamp_updated DESC OFFSET 30", feed_title, datetime.datetime.now() - datetime.timedelta(30)):
+            post.delete()
+        for comment in Comment.gql("WHERE service = :1 AND timestamp_updated < :2", feed_title, datetime.datetime.now() - datetime.timedelta(7)):
+            comment.delete()
+        self.response.set_status(200)
+        
+class CleanUpDatastore(webapp.RequestHandler):
+    def get(self):
+        for feed in Feed.all():
+           taskqueue.add(url="/cleanupfeed",params={"feed_title":feed.title}, queue_name='cleanup-queue')
+        self.response.set_status(200)
+
+
+#################################
+### MISCELLANEOUS
+#################################
+
+### REBOOT: not really with a purpose right now due to datastore caching.
+
+class RebootCommand(webapp.RequestHandler):
+    def get(self):
+        logging.info("Reboot")
+        memcache.flush_all()
+        taskqueue.add(url="/allworker", method="GET")
+        self.response.set_status(200)
+
+### CLEARPAGECACHE
+
+class ClearPageCacheCommand(webapp.RequestHandler):
+    def get(self):
+        logging.info("Clear Page Cache")
+        for page in Stored_Page.all():
+            memcache.delete(page.name)
+            page.delete()
+        for stored_list in Stored_List.gql("WHERE name = 'Global_Weighted_Tasklist'"):
+            stored_list.delete()
+        self.response.set_status(200)
+
+
+#################################
+### Dynamically generated web pages // the main content of the site
+#################################
+
+from dateview import DateView ### TODO make abstract and call with "all, research, teacher, hisartvis"
 from dateviewresearch import DateViewResearch
 from dateviewteacher import DateViewTeacher
 from dateviewhisartvis import DateViewHisArtVis
@@ -567,27 +595,21 @@ from planetmo import *
 from dataexport import *
 from grid import *
 from weeklypicks import *
-from statsview import *
-
-#####obsolete with datastore storage
-#class ClearPageCacheCommand(webapp.RequestHandler):
-    #def get(self):
-        #logging.info("Clear Page Cache")
-        #memcache.delete_multi(["StartPage","AboutPage","FeedsPage","CategoryView","WeeklyPicks","DateView","StatsView"])
-        #self.response.set_status(200)
+from statsview import * ### TODO make like dateview all, research, teacher, hisartivs
 
 
   
 
-### the main function.
+#################################
+### THE M A I N FUNCTION
+#################################
 
 def main():
   application = webapp.WSGIApplication(
                                        [('/', StartPage),
-                                        #('/clearpagecache', ClearPageCacheCommand),
+                                        ('/clearpagecache', ClearPageCacheCommand),
                                         ('/cleanupdatastore', CleanUpDatastore),
                                         ('/cleanupfeed', CleanUpFeed),
-                                        ('/about', AboutPage),
                                         ('/feeds', FeedsPage),
                                         ('/bytype', CategoryView),
                                         ('/weekly-picks', WeeklyPicks),
@@ -600,10 +622,12 @@ def main():
                                         ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
                                         ('/database-opml.xml', OPMLView),
-                                        ('/cse-config', CSEConfig),
+                                        ('/cse-config', CSEConfig), ## TODO not up to date at all...
                                         ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
-                                        ('/taglistworker', TagListWorker),
+                                        ('/feedtaglistfetch', FeedTagListFetchWorker),
+                                        ('/feedtaglistworker', FeedTagListWorker),
+                                        ('/globaltaglistworker', GlobalTagListWorker),
                                         ('/reboot', RebootCommand),
                                         ('/feed_pure', FeedHandlerPure),
                                         ('/feed_applied', FeedHandlerApplied),

@@ -1,6 +1,4 @@
 from main import *
-
-import counter
         
 
 class PlanetMO(TemplatePage):

@@ -3,7 +3,6 @@ from main import *
 class CsvView(CachedPage):
     cacheName = "CsvView"
     selfurl = "database.csv"
- #   self.response.headers['Content-Type'] = 'text/csv'
     def generatePage(self):
         output = []
         output.append( """title, homepage, person, category, posts_url, comments_url, priority, favicon, listtitle, language""")

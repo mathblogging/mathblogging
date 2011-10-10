@@ -1,8 +1,5 @@
 from main import *
 
-import counter
-        
-
 class WeeklyPicks(TemplatePage):
     cacheName = "WeeklyPicks"
     def generateContent(self):
