@@ -26,3 +26,18 @@ class OPMLView(CachedPage):
                 xmlUrl="%(url)s" htmlUrl="%(homepage)s"/>""" % {'title': feed.title,'homepage': feed.homepage, 'person': feed.person , 'category':feed.category, 'url': feed.posts_url,'comments': feed.comments_url, 'favicon': feed.favicon, 'listtitle': feed.listtitle, 'language' : feed.language } )
         output.append("""</outline></body></opml>""")
         return "".join(output)
+
+class CSEConfig(CachedPage):
+    cacheName = "CSEConfig"
+    def generatePage(self):
+        output = []
+        output.append( """ <?xml version="1.0" encoding="UTF-8" ?>
+        <Annotations>""")
+        for feed in Feed.all():
+            output.append( """
+                <Annotation about="%(homepage)s*">
+                     <Label name="_cse_et7bffbfveg"/>
+                </Annotation>
+                """ % {'homepage': add_slash(strip_http(feed.homepage)) } )
+        output.append("""</Annotations>""")
+        return "".join(output)

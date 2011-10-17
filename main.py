@@ -14,8 +14,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from Cheetah.Template import Template
-
 import wsgiref.handlers
 import os
 import xml.dom.minidom
@@ -39,6 +37,13 @@ from google.appengine.api.labs import taskqueue
 
 import cgi
 from google.appengine.ext.webapp.util import run_wsgi_app
+
+# from http://code.google.com/appengine/docs/python/tools/libraries.html#Django
+# import os #done earlier
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+
+from google.appengine.dist import use_library
+use_library('django', '0.96')
 
 #import pickle # for listoflist in datastore
 from django.utils import simplejson
@@ -103,7 +108,7 @@ def truncate_html_words(s, num):
     if words <= length:
         # Don't try to close tags if we don't need to truncate
         return s
-    out = s[:ellipsis_pos] + ' ...'
+    out = s[:ellipsis_pos] + ' [...]'
     # Close any tags still open
     for tag in open_tags:
         out += '</%s>' % tag
@@ -232,8 +237,8 @@ class Feed(db.Model):
                     _type.generate_entry(entry,feed,self) 
             except LookupError, e:
                 logging.warning("There was an error parsing the feed " + url + ":" + str(e))
-    def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
-        return add_slash(strip_http(self.homepage))
+    #def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
+     #   return add_slash(strip_http(self.homepage))
 
 
 
@@ -292,7 +297,7 @@ class Entry(polymodel.PolyModel):
                 x.timestamp_created = timestamp_updated
             x.guid = guid
             x.put()
-        except Exception, e:
+        except Exception, e: # TODO more exception catching: 'NoneType' error when feed is malformed not enough for bug tracking.
             logging.warning("There was an error processing an Entry of the Feed :" + str(e))
 
     def printTime_created_rfc3339(self):
@@ -400,11 +405,11 @@ class CachedPage(webapp.RequestHandler):
                   if not Stored_Page.gql("WHERE name = :1", self.cacheName).get():
                      logging.info("Writing to datastore: " + self.cacheName)
                      self.write_page_to_datastore()
-                  try:
-                     content = Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content
-                     memcache.set(self.cacheName,content,self.cacheTime)                  
-                  except Exception, e:
-                     logging.warning("Error setting memcache from Stored_Page object :" + str(e))
+                  content = Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content
+                  if not content == 'NoneType':
+                     memcache.set(self.cacheName,content,self.cacheTime) ### TODO NoneType error messages on the App Engine but everything works
+                  #except Exception, e:
+                   #  logging.warning("Error setting memcache from Stored_Page object :" + str(e))
             self.response.out.write(memcache.get(self.cacheName))
 
 ### Adding header, footer, menu
@@ -416,12 +421,12 @@ class TemplatePage(CachedPage):
 
 ### TODO remove leftover static cheetah pages???
 
-class SimpleCheetahPage(CachedPage):
-    templateName = "default.tmpl"
-    def generatePage(self):
-        template_values = { 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), self.templateName)
-        return str(Template( file = path, searchList = (template_values,) ))
+#class SimpleCheetahPage(CachedPage):
+#    templateName = "default.tmpl"
+#    def generatePage(self):
+#        template_values = { 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+#        path = os.path.join(os.path.dirname(__file__), self.templateName)
+#        return str(Template( file = path, searchList = (template_values,) ))
 
         
 
@@ -430,13 +435,13 @@ class SimpleCheetahPage(CachedPage):
 #################################
 
 
-class StartPage(SimpleCheetahPage):
-    cacheName = "StartPage"
-    templateName = "start.tmpl"
+#class StartPage(SimpleCheetahPage):
+#    cacheName = "StartPage"
+#    templateName = "start.tmpl"
 
-class FeedsPage(SimpleCheetahPage):
-    cacheName = "FeedsPage"
-    templateName = "feeds.tmpl"
+#class FeedsPage(SimpleCheetahPage):
+#    cacheName = "FeedsPage"
+#    templateName = "feeds.tmpl"
 
 
 #################################
@@ -445,11 +450,11 @@ class FeedsPage(SimpleCheetahPage):
 
 ### TODO is completely outdated!!!!!
 
-class CSEConfig(webapp.RequestHandler):
-    def get(self):
-        template_values = { 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
-        path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
-        self.response.out.write(Template( file = path, searchList = (template_values,) ))
+#class CSEConfig(webapp.RequestHandler):
+#    def get(self):
+#        template_values = { 'menu': menu, 'footer': footer, 'disqus': disqus, 'header': header }
+#        path = os.path.join(os.path.dirname(__file__), 'cse-config.tmpl')
+#        self.response.out.write(Template( file = path, searchList = (template_values,) ))
 
 
 #################################
@@ -481,7 +486,7 @@ class AllWorker(webapp.RequestHandler):
             #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
             taskqueue.add(url="/fetch", params={'url': feed.posts_url})
 
-        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planettag", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
         for page in pages_to_cache_list:
             taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
@@ -509,9 +514,8 @@ class FeedTagListFetchWorker(webapp.RequestHandler):
 class FeedTagListWorker(webapp.RequestHandler):
     def get(self):
         logging.info("FeedTagListWorker")
-        for feed in Feed.all():
+        for feed in Feed.gql("WHERE category IN :1", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
             taskqueue.add(url="/feedtaglistfetch", params={'url': feed.posts_url})
-        taskqueue.add(url="/globaltaglistworker", method="GET")
         self.response.set_status(200)
 
 class GlobalTagListWorker(webapp.RequestHandler):
@@ -584,6 +588,7 @@ class ClearPageCacheCommand(webapp.RequestHandler):
 ### Dynamically generated web pages // the main content of the site
 #################################
 
+from startpage import *
 from dateview import DateView ### TODO make abstract and call with "all, research, teacher, hisartvis"
 from dateviewresearch import DateViewResearch
 from dateviewteacher import DateViewTeacher
@@ -596,7 +601,7 @@ from dataexport import *
 from grid import *
 from weeklypicks import *
 from statsview import * ### TODO make like dateview all, research, teacher, hisartivs
-
+from feedspage import *
 
   
 

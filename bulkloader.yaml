@@ -85,4 +85,4 @@ transformers:
 
     - property: taglist
       external_name: taglist
-      import_transform: eval
+      import_transform: transform.none_if_empty(list)
