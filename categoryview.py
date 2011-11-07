@@ -36,8 +36,8 @@ class CategoryView(TemplatePage):
         <div class="tocbox"> 
         <ul>
         <li> <a href="#pure">Pure</a></li> 
-
-       <li> <a href="#teacher">Teachers</a></li> 
+        <li> <a href="#applied">Applied</a></li> 
+        <li> <a href="#teacher">Teachers</a></li> 
         <li> <a href="#visual">Visualization</a></li> 
         <li> <a href="#history">History</a></li> 
         <li> <a href="#art">Art</a></li> 

@@ -22,6 +22,7 @@ import datetime
 import time
 import logging
 import string
+import md5
 
 from operator import attrgetter
 from time import strftime, strptime, gmtime
@@ -198,6 +199,10 @@ class Feed(db.Model):
     comments_week = db.IntegerProperty()
     posts_week = db.IntegerProperty()
     posts_month = db.IntegerProperty()
+    checksum_posts = db.StringProperty() # checksum of original rss-file
+    checksum_comments = db.StringProperty() # checksum of original rss-file
+    last_successful_posts_fetch_date = db.DateTimeProperty()
+    last_successful_comments_fetch_date = db.DateTimeProperty()
     def update_database(self):
         logging.info("Update Database for Feed: " + self.title)
         self.fetch_feed_and_generate_entries(self.posts_url,Post)
@@ -231,12 +236,33 @@ class Feed(db.Model):
             return
         if result.status_code == 200:
             logging.info("Successfully fetched URL " + url)
-            try:
-                feed = feedparser.parse(result.content)
-                for entry in feed['entries']:
-                    _type.generate_entry(entry,feed,self) 
-            except LookupError, e:
-                logging.warning("There was an error parsing the feed " + url + ":" + str(e))
+            m = md5.new(result.content).hexdigest() # creating checksum for successfully fetched feed-content
+            if _type == Post: # Deal with the type
+                checksum = self.checksum_posts
+                last_fetch = self.last_successful_posts_fetch_date
+            else:
+                checksum = self.checksum_comments
+                last_fetch = self.last_successful_comments_fetch_date
+            if last_fetch == None:
+                last_fetch = datetime.datetime(1970,1,1)
+            if checksum != m:
+                logging.info("Checksum changed! Processing " + self.title)
+                try:
+                    feed = feedparser.parse(result.content)
+                    for entry in feed['entries']:
+                        if (last_fetch - datetime.timedelta(0,600)) <= feedparser_entry_to_timestamp_updated(entry):
+                            _type.generate_entry(entry,feed,self) 
+                except LookupError, e:
+                    logging.warning("There was an error parsing the feed " + url + ":" + str(e))
+                if _type == Post: # Deal with the type
+                    self.checksum_posts = m
+                    self.last_successful_posts_fetch_date = datetime.datetime.now()
+                    self.put()
+                else:
+                    self.checksum_comments = m
+                    self.last_successful_comments_fetch_date = datetime.datetime.now()
+                    self.put()
+                logging.info("Checksum updated: " + self.title)
     #def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
      #   return add_slash(strip_http(self.homepage))
 
@@ -484,7 +510,8 @@ class AllWorker(webapp.RequestHandler):
             page.delete()
         for feed in Feed.all():
             #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
-            taskqueue.add(url="/fetch", params={'url': feed.posts_url})
+            if feed.category != 'community': ### TODO GET YOUR ACT TOGETHER AND RE-ADD THEM 
+                taskqueue.add(url="/fetch", params={'url': feed.posts_url})
 
         pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
         for page in pages_to_cache_list:

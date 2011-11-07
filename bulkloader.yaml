@@ -83,6 +83,18 @@ transformers:
     - property: posts_month
       external_name: posts_month
 
+    - property: checksum_posts
+      external_name: checksum_posts
+
+    - property: checksum_comments
+      external_name: checksum_comments
+
+    - property: last_successful_posts_fetch_date
+      external_name: last_successful_posts_fetch_date
+
+    - property: last_successful_comments_fetch_date
+      external_name: last_successful_comments_fetch_date
+
     - property: taglist
       external_name: taglist
       import_transform: transform.none_if_empty(list)
