@@ -418,6 +418,7 @@ class CachedPage(webapp.RequestHandler):
     ### TODO is cachName, cacheTime still relevant?
     cacheName = "default"
     cacheTime = 2700
+    mimeType = "application/xhtml+xml"
     def write_page_to_datastore(self):
         x = Stored_Page()
         x.html_content = self.generatePage()
@@ -436,6 +437,7 @@ class CachedPage(webapp.RequestHandler):
                      memcache.set(self.cacheName,content,self.cacheTime) ### TODO NoneType error messages on the App Engine but everything works
                   #except Exception, e:
                    #  logging.warning("Error setting memcache from Stored_Page object :" + str(e))
+            self.response.headers['Content-Type'] = self.mimeType
             self.response.out.write(memcache.get(self.cacheName))
 
 ### Adding header, footer, menu
