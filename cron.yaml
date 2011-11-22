@@ -1,13 +1,13 @@
 cron:
 - description: check for feed updates
   url: /allworker
-  schedule: every 3 hours
+  schedule: every 6 hours
 - description: clean up datastore
   url: /cleanupdatastore
   schedule: every monday 02:00
 - description: generate feedtaglists
   url: /feedtaglistworker
-  schedule: every 12 hours
+  schedule: every 24 hours
 - description: generate global taglist
   url: /globaltaglistworker
-  schedule: every 12 hours
+  schedule: every 24 hours
