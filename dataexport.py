@@ -2,6 +2,7 @@ from main import *
 
 class CsvView(CachedPage):
     cacheName = "CsvView"
+    mimeType = "text/csv"
     selfurl = "database.csv"
     def generatePage(self):
         output = []
@@ -12,6 +13,7 @@ class CsvView(CachedPage):
 
 class OPMLView(CachedPage):
     cacheName = "OPMLView"
+    mimeType = "application/xml"
     selfurl = "database-opml.xml"
     def generatePage(self):
         output = []
@@ -29,6 +31,7 @@ class OPMLView(CachedPage):
 
 class CSEConfig(CachedPage):
     cacheName = "CSEConfig"
+    mimeType = "application/xml"
     def generatePage(self):
         output = []
         output.append( """ <?xml version="1.0" encoding="UTF-8" ?>
