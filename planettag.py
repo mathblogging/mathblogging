@@ -13,6 +13,9 @@ class PlanetTag(TemplatePage):
             <h2> PlanetTAG </h2>
             <p> Click on a tag to see a list of recent posts. Right now, you chose <big>==%(tagname)s==</big>.</p>
             <p> For convenience, we filter out the dominant tags <a href="/planettag?content=Mathematics">Mathematics</a>, <a href="/planettag?content=Math">Math</a>, <a href="/planettag?content=Maths">Maths</a>, <a href="/planettag?content=Matem&#225;ticas">Matem&#225;ticas</a>, <a href="/planettag?content=Matematica">Matematica</a> and the infamous <a href="/planettag?content=Uncategorized">Uncategorized</a> (as well as some error generating tags). </p>
+            <p>
+            You can also use the Custom Google Search underneath th tag cloud for a full text search through all blogs.
+            </p>
 
            <div id="tagcloud" style="width: 750px; height: 550px; position: relative;"></div>""" % {"tagname":tagname})
         for entry in Post.gql("WHERE tags = :1 ORDER BY timestamp_created DESC LIMIT 20",tagname):
@@ -61,5 +64,29 @@ class PlanetTag(TemplatePage):
         $("#tagcloud").jQCloud(word_list);
         };
         </script>
+            <div style="margin:20px;">
+
+            <div id="cse-search-form" style="width: 100%;">
+            Loading custom search. If you don't have JavaScript, you can use <a href="http://www.google.com/cse/home?cx=011837388000883284523:et7bffbfveg">this link</a> to search.
+            </div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script type="text/javascript">
+              google.load('search', '1', {language : 'en', style : google.loader.themes.SHINY});
+              google.setOnLoadCallback(function() {
+                var customSearchControl = new google.search.CustomSearchControl('011837388000883284523:et7bffbfveg');
+                customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+                var options = new google.search.DrawOptions();
+                options.setSearchFormRoot('cse-search-form');
+                customSearchControl.draw('cse', options);
+              }, true);
+            </script>
+            <div id="cse-search-form2" style="width: 100%;">
+            </div>
+
+            <div id="cse" style="width:100%;"></div>
+
+            <link rel="stylesheet" href="/content/cse-frontpage-2.css" type="text/css" />
+            </div>
+
         """ )
         return "".join(output)
