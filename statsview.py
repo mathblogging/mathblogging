@@ -1,10 +1,22 @@
 from main import *
 
-class StatsView(TemplatePage):
-    cacheName = "StatsView"
+
+class StatsViewBase(TemplatePage):
     def generateContent(self):
        output = []
        output.append("""
+            <div class="tocbox"> 
+		  <ul>
+		    <li><a href="/bystats" title="Recent stats">All</a> </li>
+		    <li><a href="/bystats-researchers" title="Recent stats for Researchers">Researchers</a>
+		    </li>
+		    <li><a href="/bystats-educators" title="Recent stats for Educators">Educators</a>
+		    </li>
+		    <li><a href="/bystats-artvis" title="Recent stats for Art, Visual">Art/Visual</a>
+		    </li>
+		  </ul>
+		</div>
+        <h2> The latests stats %(title)s </h2>
             <table class="bydate" id="commentsperday">
                 <thead>
                     <tr>
@@ -15,8 +27,8 @@ class StatsView(TemplatePage):
                         </th>
                     </tr>
                 </thead>
-            <tbody>""")
-       for feed in Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
+            <tbody>"""% {'title':self.selftitle})
+       for feed in self.query():
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -42,7 +54,7 @@ class StatsView(TemplatePage):
                  </tr>
               </thead>
               <tbody>""")
-       for feed in Feed.gql("WHERE category IN :1 ORDER BY comments_week DESC", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
+       for feed in self.query():
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -68,7 +80,7 @@ class StatsView(TemplatePage):
                  </tr>
               </thead>
               <tbody>""")
-       for feed in Feed.gql("WHERE category IN :1 ORDER BY posts_week DESC", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
+       for feed in self.query():
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -94,7 +106,7 @@ class StatsView(TemplatePage):
                  </tr>
               </thead>
               <tbody>""")
-       for feed in Feed.gql("WHERE category IN :1 ORDER BY posts_month DESC", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
+       for feed in self.query():
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -109,5 +121,31 @@ class StatsView(TemplatePage):
            </table>""")
        return "".join(output)
        
+class StatsView(StatsViewBase):
+    selfurl = "bystats"
+    selftitle = ""
+    cacheName = "StatsView"
+    def query(self):
+        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism'])
 
+class StatsViewResearchers(StatsViewBase):
+    selfurl = "bystats-researchers"
+    selftitle = " for researchers"
+    cacheName = "StatsViewResearchers"
+    def query(self):
+        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['history','pure','applied','general'])
+
+class StatsViewEducators(StatsViewBase):
+    selfurl = "bystats-educators"
+    selftitle = " for educators"
+    cacheName = "StatsViewEducators"
+    def query(self):
+        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['teacher'])
+
+class StatsViewArtVis(StatsViewBase):
+    selfurl = "bystats-artvis"
+    selftitle = " for art and visual"
+    cacheName = "StatsViewArtVis"
+    def query(self):
+        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['art','visual'])
 
