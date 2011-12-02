@@ -420,23 +420,28 @@ class CachedPage(webapp.RequestHandler):
     cacheTime = 2700
     mimeType = "application/xhtml+xml"
     def write_page_to_datastore(self):
+        content = self.generatePage()
         x = Stored_Page()
-        x.html_content = self.generatePage()
+        x.html_content = content
         x.name = self.cacheName
         x.put()
+        return content
     def get(self):
         if self.cacheName == "": ## the empty string as cacheName turns off caching (e.g. PlanetTAG)
             self.response.out.write(self.generatePage())
         else:
             if not memcache.get(self.cacheName):
-                  if not Stored_Page.gql("WHERE name = :1", self.cacheName).get():
-                     logging.info("Writing to datastore: " + self.cacheName)
-                     self.write_page_to_datastore()
-                  content = Stored_Page.gql("WHERE name = :1", self.cacheName).get().html_content
-                  if not content == 'NoneType':
-                     memcache.set(self.cacheName,content,self.cacheTime) ### TODO NoneType error messages on the App Engine but everything works
-                  #except Exception, e:
-                   #  logging.warning("Error setting memcache from Stored_Page object :" + str(e))
+                logging.info("Page not in memcache: " + self.cacheName)
+                page = Stored_Page.gql("WHERE name = :1", self.cacheName).get()
+                content = None
+                if page:
+                    content = page.html_content
+                else:
+                    logging.info("Writing to datastore: " + self.cacheName)
+                    content = self.write_page_to_datastore()
+                if not content == None:
+                    logging.info("Writing to memcache: " + self.cacheName)
+                    memcache.set(self.cacheName, content, self.cacheTime)
             self.response.headers['Content-Type'] = self.mimeType
             self.response.out.write(memcache.get(self.cacheName))
 
