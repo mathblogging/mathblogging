@@ -1,5 +1,5 @@
 from main import *
-import json
+from django.utils import simplejson
 
 class CsvView(CachedPage):
     cacheName = "CsvView"
@@ -54,13 +54,14 @@ class PostsJSONExport(CachedPage):
         for post in Post.gql("WHERE category IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
             posts.append({
                     "title": post.title,
-                    "date": post.timestamp_created,
+                    "date": post.printTime_created(),
                     "length": post.length,
                     "blog": post.service,
                     "tags": [tag for tag in post.tags],
-                    "category": post.category
+                    "category": post.category,
+                    "comments": 0 #TODO
                 })
         output = {"posts":posts}
-        return json.dumps(output)
+        return simplejson.dumps(output)
     
 
