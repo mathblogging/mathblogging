@@ -1,4 +1,5 @@
 from main import *
+import json
 
 class CsvView(CachedPage):
     cacheName = "CsvView"
@@ -44,3 +45,22 @@ class CSEConfig(CachedPage):
                 """ % {'homepage': add_slash(strip_http(feed.homepage)) } )
         output.append("""</Annotations>""")
         return "".join(output)
+
+class PostsJSONExport(CachedPage):
+    cacheName = "PostsJSONExport"
+    mimeType = "application/json"
+    def generatePage(self):
+        posts = []
+        for post in Post.gql("WHERE category IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
+            posts.append({
+                    "title": post.title,
+                    "date": post.timestamp_created,
+                    "length": post.length,
+                    "blog": post.service,
+                    "tags": [tag for tag in post.tags],
+                    "category": post.category
+                })
+        output = {"posts":posts}
+        return json.dumps(output)
+    
+
