@@ -35,7 +35,7 @@ class CSEConfig(CachedPage):
     mimeType = "application/xml"
     def generatePage(self):
         output = []
-        output.append( """ <?xml version="1.0" encoding="UTF-8" ?>
+        output.append( """<?xml version="1.0" encoding="UTF-8" ?>
         <Annotations>""")
         for feed in Feed.all():
             output.append( """
