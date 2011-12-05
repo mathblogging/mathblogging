@@ -17,11 +17,11 @@ class CategoryView(TemplatePage):
             <div class="feedbox">
             <h3> <a href="%(homepage)s">%(title)s </a> </h3>
 	    <ul>
-	    """ % { 'homepage': feed.homepage, 'title': feed.title })
-            for entry in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 7", feed.title):
+	    """ % { 'homepage': feed.homepage, 'title': html_escape(feed.title) })
+            for entry in Post.gql("WHERE homepage = :1 ORDER BY timestamp_created DESC LIMIT 7", feed.homepage):
                 output.append("""
                 <li><a href="%(link)s" title="%(title)s">%(title)s</a></li>
-                """ % {'link': entry.link, 'title': entry.title})
+                """ % {'link': entry.link, 'title': html_escape(entry.title)})
             output.append("""
             </ul> </div> </li>
             """)

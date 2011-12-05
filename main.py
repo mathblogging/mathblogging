@@ -303,12 +303,12 @@ class Entry(polymodel.PolyModel):
                 x = cls() # if the entry does not exist, then we create a new one
                 #logging.info("guid does not exist: " + entry['title'])
             #   add entry to database!
-            x.service = database_feed.title # NOTE utf8 -- must be html-escaped in every html context!!!
-            x.title = html_escape(entry['title']) # feedparser give utf8
-            x.link = html_escape(entry['link'])   # feedparser give utf8
+            x.service = database_feed.title # TODO Why aren't we getting UTF8 but sanitized/HTML in the datastore????
+            x.title = entry['title'] 
+            x.link = entry['link']
             x.length = len( get_feedparser_entry_content(entry) )
 ##OLD            x.content = get_feedparser_entry_content(entry)
-            x.content = truncate_html_words(get_feedparser_entry_content(entry), 100)
+            x.content = truncate_html_words(get_feedparser_entry_content(entry), 1000)
             x.category = database_feed.category
             x.homepage = database_feed.homepage
             try:
