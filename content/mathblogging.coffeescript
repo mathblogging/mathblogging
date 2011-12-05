@@ -1,0 +1,17 @@
+process_json = (data) ->
+  "<table id='posts' class='tablesorter'><thead><tr><th>Date</th><th>Blog</th><th>Post</th><th>Category</th><th>Tags</th><th>#Comments</th></tr></thead><tbody>#{ (post_to_row row for row in data.posts).join("") }</tbody></table>"
+
+post_to_row = (post) ->
+  "<tr>
+   <td>#{ post.date }</td>
+   <td>#{ post.blog }</td>
+   <td>#{ post.title }</td>
+   <td>#{ post.category }</td>
+   <td>#{ post.tags.join(", ") }</td>
+   <td>#{ post.comments }</td>
+   </tr>"
+
+load_page = () ->
+  $.getJSON("http://staging.mathblogging.org/json", (data) ->
+    $('#content').append(process_json data)
+    $("#posts").tablesorter({ sortList: [[0,0],[0,1]], widgets: ["zebra"]}))

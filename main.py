@@ -442,7 +442,8 @@ class CachedPage(webapp.RequestHandler):
                 if not content == None:
                     logging.info("Writing to memcache: " + self.cacheName)
                     memcache.set(self.cacheName, content, self.cacheTime)
-            self.response.headers['Content-Type'] = self.mimeType
+            del self.response.headers["Content-Type"]
+            self.response.headers.add_header('Content-Type', self.mimeType, charset="utf-8")
             self.response.out.write(memcache.get(self.cacheName))
 
 ### Adding header, footer, menu
