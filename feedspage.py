@@ -37,5 +37,6 @@ class FeedsPage(TemplatePage):
 	    <li> <a href="/feed_people">The people feed (everything but institutions, communities, journals, commercial)</a> </li>
 	    <li> <a href="/feed_all">The full feed</a> </li>
       </ul>
+      </div>
       """)
         return "".join(output)
