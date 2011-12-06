@@ -54,7 +54,7 @@ class PostsJSONExport(CachedPage):
         for post in Post.gql("WHERE category IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
             posts.append({
                     "title": post.title,
-                    "date": post.printTime_created(),
+                    "date": post.timestamp_created.strftime('%B %d,%Y %I:%M:%S %p'),
                     "length": post.length,
                     "blog": post.service,
                     "tags": [tag for tag in post.tags],
