@@ -76,7 +76,7 @@ class WeeklyPicksJSONPHandler(JSONPHandler):
     def generatePage(self):
         picks = [ {
             "url": "http://rjlipton.wordpress.com/2011/12/03/the-meaning-of-omega/", 
-            "caption": "If you haven’t followed the debate on TCS breakthrough in matrix multiplication, you can read up on it at Gödel’s Lost Letter and P=NP (and you might also check out a short comment at Yet Another Math Programmer)." } ]
+            "caption": "If you haven't followed the debate on TCS breakthrough in matrix multiplication, you can read up on it at Gödel's Lost Letter and P=NP (and you might also check out a short comment at Yet Another Math Programmer)." } ]
         output = picks
         return simplejson.dumps(output)
     
