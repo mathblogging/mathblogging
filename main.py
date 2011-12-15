@@ -377,6 +377,48 @@ class Comment(Entry):
 
 
 #######################################
+### PreFeed: for extending the database by generating most of the information for the feedobjects
+#######################################
+
+
+class PreFeed(db.Model):
+    posts_url = db.LinkProperty()
+    comments_url = db.StringProperty()
+    category = db.StringProperty()
+    person = db.StringProperty()
+    language = db.StringProperty()
+    homepage = db.StringProperty()
+    title = db.StringProperty()
+
+    def generate_feedobject(self):
+        x = Feed()
+        try:
+	    x.posts_url = self.posts_url
+	    x.homepage = self.homepage
+	    x.title = self.title
+	    x.listtitle = self.title.lower()
+	    x.person = self.person
+	    x.category = self.category
+	    x.taglist = []
+	    x.language = self.language
+	    x.priority = 1
+	    x.favicon = ""
+	    x.comments_url = self.comments_url
+	    x.comments_day = 0
+	    x.comments_week = 0
+	    x.posts_week = 0
+	    x.posts_month = 0
+	    x.checksum_posts = '' # checksum of original rss-file
+	    x.checksum_comments = '' # checksum of original rss-file
+	    x.last_successful_posts_fetch_date = datetime.datetime(1970,1,1)
+	    x.last_successful_comments_fetch_date = datetime.datetime(1970,1,1)
+            x.put()
+        except Exception, e: # TODO more exception catching: 'NoneType' error when feed is malformed not enough for bug tracking.
+            logging.warning("There was an error processing the Feedobject :" + str(e))
+
+
+
+#######################################
 ### Storing for caching
 #######################################
 
@@ -571,6 +613,19 @@ class GlobalTagListWorker(webapp.RequestHandler):
         x.put()
         self.response.set_status(200)
 
+#################################
+### GENERATING FEEDOBJECTS FROM PREFEEDs
+#################################
+
+
+class PreFeedWorker(webapp.RequestHandler): ### runs at \prefeed with admin privileges -- make sure to delete prefeeds afterwards!
+    def get(self):
+        logging.info("PreFeedWorker")
+        for prefeed in PreFeed.all():
+            prefeed.generate_feedobject()
+        self.response.set_status(200)
+
+
 
 #################################
 ### CLEANING UP THE DATASTORE // DELETING OLD ENTRIES
@@ -669,6 +724,7 @@ def main():
                                         ('/feedtaglistfetch', FeedTagListFetchWorker),
                                         ('/feedtaglistworker', FeedTagListWorker),
                                         ('/globaltaglistworker', GlobalTagListWorker),
+                                        ('/prefeed', PreFeedWorker),
                                         ('/reboot', RebootCommand),
                                         ('/feed_pure', FeedHandlerPure),
                                         ('/feed_applied', FeedHandlerApplied),
