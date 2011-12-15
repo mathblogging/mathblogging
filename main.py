@@ -469,13 +469,15 @@ class CachedPage(webapp.RequestHandler):
         x.put()
         return content
     def get(self):
+        content = None
         if self.cacheName == "": ## the empty string as cacheName turns off caching (e.g. PlanetTAG)
-            self.response.out.write(self.generatePage())
+            logging.info("Caching turned off for: " + self.cacheName)
+            content = self.generatePage()
         else:
-            if not memcache.get(self.cacheName):
+            content = memcache.get(self.cacheName)
+            if not content:
                 logging.info("Page not in memcache: " + self.cacheName)
                 page = Stored_Page.gql("WHERE name = :1", self.cacheName).get()
-                content = None
                 if page:
                     content = page.html_content
                 else:
@@ -484,9 +486,12 @@ class CachedPage(webapp.RequestHandler):
                 if not content == None:
                     logging.info("Writing to memcache: " + self.cacheName)
                     memcache.set(self.cacheName, content, self.cacheTime)
-            del self.response.headers["Content-Type"]
-            self.response.headers.add_header('Content-Type', self.mimeType, charset="utf-8")
-            self.response.out.write(memcache.get(self.cacheName))
+        del self.response.headers["Content-Type"]
+        self.response.headers.add_header('Content-Type', self.mimeType, charset="utf-8")
+        self.response.out.write(self.post_process_content(content))
+    # this hook is intended for use with the JSONP handler that needs to modify the stored content depending on the parameters of the request. by default, post_process_content does nothing.
+    def post_process_content(self, content):
+        return content
 
 ### Adding header, footer, menu
 
@@ -719,6 +724,7 @@ def main():
                                         ('/database-opml.xml', OPMLView),
                                         ('/cse-config', CSEConfig), ## TODO not up to date at all...
                                         ('/json', PostsJSONExport),
+                                        (r'/picksjsonp.*', WeeklyPicksJSONPHandler),
                                         ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/feedtaglistfetch', FeedTagListFetchWorker),

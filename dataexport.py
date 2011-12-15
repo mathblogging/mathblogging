@@ -63,5 +63,21 @@ class PostsJSONExport(CachedPage):
                 })
         output = {"posts":posts}
         return simplejson.dumps(output)
+
+class JSONPHandler(CachedPage):
+    mimeType = "application/javascript"
+    def post_process_content(self, content):
+        callback = self.request.get("callback")
+        logging.info("Add JSONP padding: " + callback)
+        return "%s(%s);" % (callback, content)
+
+class WeeklyPicksJSONPHandler(JSONPHandler):
+    cacheName = "WeeklyPicksJSONPHandler"
+    def generatePage(self):
+        picks = [ {
+            "url": "http://rjlipton.wordpress.com/2011/12/03/the-meaning-of-omega/", 
+            "caption": "If you haven't followed the debate on TCS breakthrough in matrix multiplication, you can read up on it at Gödel's Lost Letter and P=NP (and you might also check out a short comment at Yet Another Math Programmer)." } ]
+        output = picks
+        return simplejson.dumps(output)
     
 

@@ -8,7 +8,13 @@
     <script type="text/javascript" src="jquery-latest.js"></script> 
     <script type="text/javascript" src="jquery.tablesorter.js"></script>
     <script type="text/javascript" src="mathblogging.js"></script>
-     <script type="text/javascript">/*(document).ready(function() {load_page();})*/</script>
+     <script type="text/javascript">
+     function load_picks() {
+     $.getJSON("http://staging.mathblogging.org/picksjsonp?callback=?",function(data) {
+	$("#banner").html("<a href='" + data[0].url + "'>" + data[0].caption + "</a>");
+     $("#banner").append("<div><iframe style='-webkit-transform: scale(0.5); width: 2000px;' src=" + data[0].url + " ></iframe></div>");    });
+	}
+     </script>
     <style type="text/css">
 body {
   height: 600px; 
@@ -33,11 +39,19 @@ a {
   border: 1px solid gray;
   box-shadow: 2px 2px 5px black;
 }
+#banner {
+  width: 80%;
+  padding: 20px;
+  background: white;
+}
     </style>
     <title>Mathblogging.org</title>
   </head>
   <body>
-  <div><a onclick="load_page()">Load!</a></div>
+  <div id="banner">
+  <a onclick="load_picks()">Load picks!</a>
+  </div>
+  <div><a onclick="load_page()">Load Posts!</a></div>
   <div id="content">
   </div>
 </body>
