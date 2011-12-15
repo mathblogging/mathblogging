@@ -15,7 +15,7 @@ Our weekly picks, crossposted from <a href="https://mathblogging.wordpress.com/c
   <h2><a href="%(link)s" title="%(title)s">%(title)s</a></h2>
   <div class="planetsubtitle">Posted %(tcreated)s.
   </div>
-  <div class="planettags"> """ % {"link":entry.link, "title":entry.title, "homepage":entry.homepage, "tcreated":entry.printShortTime_created()} )
+  <div class="planettags"> """ % {"link":html_escape(entry.link), "title":html_escape(entry.title), "homepage":html_escape(entry.homepage), "tcreated":entry.printShortTime_created()} )
             output.append( """ </div>
   </div>
   <div class="planetbody">

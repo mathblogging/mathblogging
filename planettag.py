@@ -56,7 +56,7 @@ class PlanetTag(TemplatePage):
        var word_list = [ """ )
         for tag_weight in weighted_taglist:
             if tag_weight[0] != "Uncategorized" and tag_weight[0] != "Uncategorized>" and tag_weight[0] != "Mathematics" and tag_weight[0] != "Math" and tag_weight[0] != "Maths" and tag_weight[0] != "Http://gdata.youtube.com/schemas/2007#video" and repr(tag_weight[0]) != repr(u'Matem\xe1ticas') and tag_weight[0] != "Matematica" and tag_weight[1]>10 :
-               output.append(""" {text: "%(text)s", weight: %(weight)s, url: "/planettag?content=%(text)s"}, """ % {"text":tag_weight[0], "weight": tag_weight[1] } )
+               output.append(""" {text: "%(text)s", weight: %(weight)s, url: "/planettag?content=%(text)s"}, """ % {"text":html_escape(tag_weight[0]), "weight": tag_weight[1] } )
         output.append( """
         ];
         window.onload = function() {

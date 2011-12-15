@@ -27,7 +27,7 @@ class StatsViewBase(TemplatePage):
                         </th>
                     </tr>
                 </thead>
-            <tbody>"""% {'title':self.selftitle})
+            <tbody>"""% {'title':html_escape(self.selftitle)})
        for feed in self.query():
           output.append("""
                  <tr>
@@ -37,7 +37,7 @@ class StatsViewBase(TemplatePage):
                     <td valign="bottom" class="blogcolumn">
                        <a href="%(homepage)s">%(title)s</a>
                     </td>
-                 </tr>""" % {'comments_day': str(feed.comments_day), 'homepage': feed.homepage, 'title': html_escape(feed.title) })
+                 </tr>""" % {'comments_day': str(feed.comments_day), 'homepage': html_escape(feed.homepage), 'title': html_escape(feed.title) })
        output.append("""
               </tbody>
            </table>""")
@@ -63,7 +63,7 @@ class StatsViewBase(TemplatePage):
                     <td valign="bottom" class="blogcolumn">
                        <a href="%(homepage)s">%(title)s</a>
                     </td>
-                 </tr>""" % {'comments_week': str(feed.comments_week), 'homepage': feed.homepage, 'title': html_escape(feed.title) })
+                 </tr>""" % {'comments_week': str(feed.comments_week), 'homepage': html_escape(feed.homepage), 'title': html_escape(feed.title) })
        output.append("""
               </tbody>
            </table>""")
@@ -89,7 +89,7 @@ class StatsViewBase(TemplatePage):
                     <td valign="bottom" class="blogcolumn">
                        <a href="%(homepage)s">%(title)s</a>
                     </td>
-                 </tr>""" % {'posts_week': str(feed.posts_week), 'homepage': feed.homepage, 'title': html_escape(feed.title) })
+                 </tr>""" % {'posts_week': str(feed.posts_week), 'homepage': html_escape(feed.homepage), 'title': html_escape(feed.title) })
        output.append("""
               </tbody>
            </table>""")
@@ -115,7 +115,7 @@ class StatsViewBase(TemplatePage):
                     <td valign="bottom" class="blogcolumn">
                        <a href="%(homepage)s">%(title)s</a>
                     </td>
-                 </tr>""" % {'posts_month': str(feed.posts_month), 'homepage': feed.homepage, 'title': html_escape(feed.title) })
+                 </tr>""" % {'posts_month': str(feed.posts_month), 'homepage': html_escape(feed.homepage), 'title': html_escape(feed.title) })
        output.append("""
               </tbody>
            </table>""")

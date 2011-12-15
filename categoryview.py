@@ -21,7 +21,7 @@ class CategoryView(TemplatePage):
             for entry in Post.gql("WHERE homepage = :1 ORDER BY timestamp_created DESC LIMIT 7", feed.homepage):
                 output.append("""
                 <li><a href="%(link)s" title="%(title)s">%(title)s</a></li>
-                """ % {'link': entry.link, 'title': html_escape(entry.title)})
+                """ % {'link': html_escape(entry.link), 'title': html_escape(entry.title)})
             output.append("""
             </ul> </div> </li>
             """)

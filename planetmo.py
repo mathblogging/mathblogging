@@ -16,9 +16,9 @@ At PlanetMO we collect recent posts tagged "mathoverflow", "math overflow", "mo"
   <div class="planetsubtitle">Posted on <a href="%(homepage)s" title="%(service)s">%(service)s</a> at %(tcreated)s.
   </div>
   <div class="planettags">
-     <i>Tags:</i> """ % {"link":entry.link, "title":entry.title, "homepage":entry.homepage, "service":html_escape(entry.service), "tcreated":entry.printShortTime_created()} )
+     <i>Tags:</i> """ % {"link":html_escape(entry.link), "title":html_escape(entry.title), "homepage":html_escape(entry.homepage), "service":html_escape(entry.service), "tcreated":entry.printShortTime_created()} )
             for tag in entry.tags:
-                output.append(tag)
+                output.append(html_escape(tag))
                 output.append(", ")
             output.append( """ </div>
   </div>
