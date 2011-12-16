@@ -760,6 +760,7 @@ def main():
                                         ('/feed_academics', FeedHandlerResearchers), # left for transition
                                         ('/feed_institution', FeedHandlerInstitutions),
                                         ('/planettag', PlanetTag),
+                                        ('/planettag2', PlanetTagBlogs),
                                         # Testing
                                         ('/gridview', GridView)
                                         ],
