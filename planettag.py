@@ -35,7 +35,7 @@ class PlanetTag(TemplatePage):
             </div>
             <div class="planetbody">
             <p> """ )
-            output.append( entry.content )
+            output.append( truncate_html_words(entry.content,100) )
             output.append( """  </p>  </div> </div>""" )
         output.append( """ 
         <script type="text/javascript"> 

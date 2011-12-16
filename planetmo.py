@@ -24,6 +24,6 @@ At PlanetMO we collect recent posts tagged "mathoverflow", "math overflow", "mo"
   </div>
   <div class="planetbody">
   """ )
-            output.append( entry.content )
+            output.append( truncate_html_words(entry.content,100) )
             output.append( """  </div> </div> """ )
         return "".join(output)
