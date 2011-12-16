@@ -568,7 +568,7 @@ class AllWorker(webapp.RequestHandler):
             if feed.category != 'community': ### TODO GET YOUR ACT TOGETHER AND RE-ADD THEM 
                 taskqueue.add(url="/fetch", params={'url': feed.posts_url})
 
-        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers","/bystats-researchers","bystats-educators","bystats-artvis"]
         for page in pages_to_cache_list:
             taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
