@@ -6,6 +6,7 @@ class FeedHandlerBase(CachedPage):
     def generatePage(self):
         output = []
         output.append( """<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE feed [<!ENTITY nbsp "&#160;">]>
 <feed xmlns="http://www.w3.org/2005/Atom">
  <title>Mathblogging.org</title>
  <link href="http://www.mathblogging.org/%(url)s" rel="self"/>
