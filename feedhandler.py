@@ -2,6 +2,7 @@ from main import *
 
 class FeedHandlerBase(CachedPage):
     selfurl = "feed"
+    mimeType = "application/atom+xml"
     def generatePage(self):
         output = []
         output.append( """<?xml version="1.0" encoding="utf-8"?>
