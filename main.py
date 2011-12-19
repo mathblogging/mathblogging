@@ -377,6 +377,48 @@ class Comment(Entry):
 
 
 #######################################
+### PreFeed: for extending the database by generating most of the information for the feedobjects
+#######################################
+
+
+class PreFeed(db.Model):
+    posts_url = db.LinkProperty()
+    comments_url = db.StringProperty()
+    category = db.StringProperty()
+    person = db.StringProperty()
+    language = db.StringProperty()
+    homepage = db.StringProperty()
+    title = db.StringProperty()
+
+    def generate_feedobject(self):
+        x = Feed()
+        try:
+	    x.posts_url = self.posts_url
+	    x.homepage = self.homepage
+	    x.title = self.title
+	    x.listtitle = self.title.lower()
+	    x.person = self.person
+	    x.category = self.category
+	    x.taglist = []
+	    x.language = self.language
+	    x.priority = 1
+	    x.favicon = ""
+	    x.comments_url = self.comments_url
+	    x.comments_day = 0
+	    x.comments_week = 0
+	    x.posts_week = 0
+	    x.posts_month = 0
+	    x.checksum_posts = '' # checksum of original rss-file
+	    x.checksum_comments = '' # checksum of original rss-file
+	    x.last_successful_posts_fetch_date = datetime.datetime(1970,1,1)
+	    x.last_successful_comments_fetch_date = datetime.datetime(1970,1,1)
+            x.put()
+        except Exception, e: # TODO more exception catching: 'NoneType' error when feed is malformed not enough for bug tracking.
+            logging.warning("There was an error processing the Feedobject :" + str(e))
+
+
+
+#######################################
 ### Storing for caching
 #######################################
 
@@ -526,7 +568,7 @@ class AllWorker(webapp.RequestHandler):
             if feed.category != 'community': ### TODO GET YOUR ACT TOGETHER AND RE-ADD THEM 
                 taskqueue.add(url="/fetch", params={'url': feed.posts_url})
 
-        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers"]
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers","/bystats-researchers","bystats-educators","bystats-artvis"]
         for page in pages_to_cache_list:
             taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
@@ -575,6 +617,19 @@ class GlobalTagListWorker(webapp.RequestHandler):
         x.content = weighted_taglist
         x.put()
         self.response.set_status(200)
+
+#################################
+### GENERATING FEEDOBJECTS FROM PREFEEDs
+#################################
+
+
+class PreFeedWorker(webapp.RequestHandler): ### runs at \prefeed with admin privileges -- make sure to delete prefeeds afterwards!
+    def get(self):
+        logging.info("PreFeedWorker")
+        for prefeed in PreFeed.all():
+            prefeed.generate_feedobject()
+        self.response.set_status(200)
+
 
 
 #################################
@@ -663,6 +718,9 @@ def main():
                                         ('/byartvishisdate', DateViewHisArtVis),
                                         ('/byteacherdate', DateViewTeacher),
                                         ('/bystats', StatsView),
+                                        ('/bystats-researchers', StatsViewResearchers),
+                                        ('/bystats-educators', StatsViewEducators),
+                                        ('/bystats-artvis', StatsViewArtVis),
                                         ('/planetmo', PlanetMO),
                                         ('/planetmo-feed', PlanetMOfeed),
                                         ('/database.csv', CsvView),
@@ -675,6 +733,7 @@ def main():
                                         ('/feedtaglistfetch', FeedTagListFetchWorker),
                                         ('/feedtaglistworker', FeedTagListWorker),
                                         ('/globaltaglistworker', GlobalTagListWorker),
+                                        ('/prefeed', PreFeedWorker),
                                         ('/reboot', RebootCommand),
                                         ('/feed_pure', FeedHandlerPure),
                                         ('/feed_applied', FeedHandlerApplied),
@@ -701,6 +760,7 @@ def main():
                                         ('/feed_academics', FeedHandlerResearchers), # left for transition
                                         ('/feed_institution', FeedHandlerInstitutions),
                                         ('/planettag', PlanetTag),
+                                        ('/planettag2', PlanetTagBlogs),
                                         # Testing
                                         ('/gridview', GridView)
                                         ],

@@ -98,3 +98,39 @@ transformers:
     - property: taglist
       external_name: taglist
       import_transform: transform.none_if_empty(list)
+      
+- kind: PreFeed
+  connector: csv
+  connector_options:
+    # TODO: Add connector options here--these are specific to each connector.
+  property_map:
+    - property: __key__
+      external_name: key
+      export_transform: transform.key_id_or_name_as_string
+
+    - property: comments_url
+      external_name: comments_url
+
+    - property: person
+      external_name: person
+      # Type: String Stats: 128 properties of this type in this kind.
+
+    - property: category
+      external_name: category
+      # Type: String Stats: 128 properties of this type in this kind.
+
+    - property: language
+      external_name: language
+      # Type: String Stats: 128 properties of this type in this kind.
+
+    - property: posts_url
+      external_name: posts_url
+      # Type: String Stats: 128 properties of this type in this kind.
+
+    - property: homepage
+      external_name: homepage
+
+    - property: title
+      external_name: title
+      # Type: String Stats: 128 properties of this type in this kind.
+
