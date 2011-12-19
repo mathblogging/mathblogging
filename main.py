@@ -460,7 +460,7 @@ class CachedPage(webapp.RequestHandler):
     ### TODO is cachName, cacheTime still relevant?
     cacheName = "default"
     cacheTime = 2700
-    mimeType = "application/xhtml+xml"
+    mimeType = "text/html" #"application/xhtml+xml"
     def write_page_to_datastore(self):
         content = self.generatePage()
         x = Stored_Page()
