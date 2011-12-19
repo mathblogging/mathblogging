@@ -28,7 +28,7 @@ class StatsViewBase(TemplatePage):
                     </tr>
                 </thead>
             <tbody>"""% {'title':html_escape(self.selftitle)})
-       for feed in self.query():
+       for feed in Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", self.categories()):
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -54,7 +54,7 @@ class StatsViewBase(TemplatePage):
                  </tr>
               </thead>
               <tbody>""")
-       for feed in self.query():
+       for feed in Feed.gql("WHERE category IN :1 ORDER BY comments_week DESC", self.categories()):
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -80,7 +80,7 @@ class StatsViewBase(TemplatePage):
                  </tr>
               </thead>
               <tbody>""")
-       for feed in self.query():
+       for feed in Feed.gql("WHERE category IN :1 ORDER BY posts_week DESC", self.categories()):
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -106,7 +106,7 @@ class StatsViewBase(TemplatePage):
                  </tr>
               </thead>
               <tbody>""")
-       for feed in self.query():
+       for feed in Feed.gql("WHERE category IN :1 ORDER BY posts_month DESC", self.categories()):
           output.append("""
                  <tr>
                     <td valign="bottom" class="datecolumn">
@@ -125,27 +125,27 @@ class StatsView(StatsViewBase):
     selfurl = "bystats"
     selftitle = ""
     cacheName = "StatsView"
-    def query(self):
-        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism'])
+    def categories(self):
+        return ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']
 
 class StatsViewResearchers(StatsViewBase):
     selfurl = "bystats-researchers"
     selftitle = " for researchers"
     cacheName = "StatsViewResearchers"
-    def query(self):
-        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['history','pure','applied','general'])
+    def categories(self):
+        return ['history','pure','applied','general']
 
 class StatsViewEducators(StatsViewBase):
     selfurl = "bystats-educators"
     selftitle = " for educators"
     cacheName = "StatsViewEducators"
-    def query(self):
-        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['teacher'])
+    def categories(self):
+        return ['teacher']
 
 class StatsViewArtVis(StatsViewBase):
     selfurl = "bystats-artvis"
     selftitle = " for art and visual"
     cacheName = "StatsViewArtVis"
-    def query(self):
-        return Feed.gql("WHERE category IN :1 ORDER BY comments_day DESC", ['art','visual'])
+    def categories(self):
+        return ['art','visual']
 
