@@ -338,7 +338,7 @@ class Entry(polymodel.PolyModel):
                         logging.warning("Feed object does not have id! This should not happen.")
                     else:
                         logging.info("Appending blog id " + str(feed_id) + " to tag " + tag + ".")
-                        t.blogs.append(int(feed_id)) # add key. TODO: add error handling if conversion to int fails
+                        t.blogs.append(str(feed_id)) # add key
                         t.blogs = list(set(t.blogs)) # remove duplicates
                     # next, we add this post to the list of posts in which this tag is mentioned
                     post_id = x.key().id_or_name()
@@ -346,7 +346,7 @@ class Entry(polymodel.PolyModel):
                         logging.warning("Post object does not have id! This should not happen.")
                     else:
                         logging.info("Appendig post id " + str(post_id) + "to tag " + tag + ".")
-                        t.posts.append(int(x.key().id_or_name())) # add key, this only works because x has already been put
+                        t.posts.append(str(x.key().id_or_name())) # add key, this only works because x has already been put
                         t.posts = list(set(t.posts)) # remove duplicates
                     # we are done, commit t to datastore
                     t.put()
@@ -408,8 +408,8 @@ class Comment(Entry):
 
 class Tag(db.Model):
     name = db.StringProperty()
-    posts = db.ListProperty(int)
-    blogs = db.ListProperty(int)
+    posts = db.StringListProperty()
+    blogs = db.StringListProperty()
 
 
 #######################################
@@ -731,6 +731,7 @@ from grid import *
 from weeklypicks import *
 from statsview import * ### TODO make like dateview all, research, teacher, hisartivs
 from feedspage import *
+from jsoninterface import PostsJSONP, BlogsJSONP, TagsJSONP, DataJSONP
 
   
 
@@ -762,6 +763,10 @@ def main():
                                         ('/cse-config', CSEConfig), ## TODO not up to date at all...
                                         ('/json', PostsJSONExport),
                                         (r'/picksjsonp.*', WeeklyPicksJSONPHandler),
+                                        (r'/jsonp/data.*', DataJSONP),
+                                        (r'/jsonp/blogs.*', BlogsJSONP),
+                                        (r'/jsonp/posts.*', PostsJSONP),
+                                        (r'/jsonp/tags.*', TagsJSONP),
                                         ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/feedtaglistfetch', FeedTagListFetchWorker),
