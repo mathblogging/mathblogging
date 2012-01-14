@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/content/site.css"/>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <script type="text/javascript" src="jquery-latest.js"></script>
+     <script type="text/javascript">
+function load_picks() {
+    $.getJSON("/jsonp/data?callback=?",function(data) {
+        $("#threecol").empty();
+        $("#threecol").html("<div id='blogs'></div><div id='posts'></div><div id='tags'></div>");
+        blogs = [];
+        $.each( data.blogs, function(id, blog) {
+            blog.id = id;
+            blogs.push(blog);
+        });
+        posts = [];
+        $.each( data.posts, function(id, post) {
+            post.id = id;
+            posts.push(post);
+        });
+        tags = [];
+        $.each( data.tags, function(id, tag) {
+            tag.id = id;
+            tags.push(tag);
+        });
+        posts.sort(function(a,b) {
+            adate = new Date(a.date);
+            bdate = new Date(b.date);
+            return adate < bdate;
+        });
+        blogs.sort(function(a,b) {
+            return a.comments_day < b.comments_day;
+        });
+        tags.sort(function(a,b) {
+            return a.posts.length < b.posts.length;
+        });
+        $.each(blogs, function(i, blog) {
+            $("#blogs").append("<div class='blog' id='" + blog.id + "'><b>" + blog.name + "</b><br/><span class='bloginfo'>#cmts: " + blog.comments_day + "</span></div>");
+        });
+        $.each(posts, function(i, post) {
+            $("#posts").append("<div class='post' id='" + post.id + "'><b>" + post.title + "</b> <span class='postinfo'>" + data.blogs[post.blog].name + "</span><br/><span class='postinfo'>" + post.date + "</span></div>");
+        });
+        $.each( tags, function(i, tag) {
+            $("#tags").append("<div class='tag' id='" + tag.id + "'><b>" + tag.name + "</b> <span class='taginfo'>#posts: " + tag.posts.length + "</span></div>");
+        });
+    });
+}
+     </script>
+    <style type="text/css">
+body {
+  height: 600px; 
+  background: #DDDDDD;
+  background-repeat: repeat-x;
+  background-image: url("/content/background-frontpage.png");
+  background-image: -webkit-gradient(linear,left top,left bottom, color-stop(0, #444444), color-stop(0.33, #AAAAAA), color-stop(1, #DDDDDD));
+  background-image: -moz-linear-gradient(center top , #444444 0%, #AAAAAA 200px, #DDDDDD 100%);
+}
+#banner {
+  width: 80%;
+  padding: 20px;
+  margin: auto;
+}
+#threecol {
+    margin: auto;
+    width: 80%;
+}
+#posts, #blogs, #tags {
+    margin-left: auto;
+    margin-right: auto;
+    float: left;
+}
+#posts {
+    width: 53%;
+    margin-left: 10px; margin-right: 10px;
+}
+#blogs {
+    width: 22%;
+}
+#tags {
+    width: 22%;
+}
+.post, .blog, .tag {
+    border: thin solid gray;
+    background: white;
+    box-shadow: #666 1px 1px 2px;
+    margin: 5px;
+    padding: 4px;
+}
+.bloginfo, .postinfo, .taginfo {
+    color: gray;
+    font-size: 80%;
+}
+    </style>
+    <title>Mathblogging.org</title>
+  </head>
+  <body>
+  <div id="banner">
+  <img src="/content/handwriting.png"/>
+  </div>
+    <div id="threecol">
+    Loading...
+    <!--    <div id="posts">
+            <div class="post" id="post_12">Foo 1</div>
+            <div class="post" id="post_23">Foo 2</div>
+            <div class="post" id="post_25">Foo 3</div>
+        </div>
+        <div id="blogs">
+            <div class="blog" id="blog_2">Bar 1</div>
+            <div class="blog" id="blog_5">Bar 2</div>
+            <div class="blog" id="blog_17">Bar 3</div>
+        </div>
+        <div id="tags">
+            <div class="tag" id="tag_3">Tag 1</div>
+            <div class="tag" id="tag_6">Tag 2</div>
+            <div class="tag" id="tag_10">Tag 3</div>
+        </div>-->
+    </div>
+    <script type="text/javascript">load_picks();</script>
+</body>
+</html>
