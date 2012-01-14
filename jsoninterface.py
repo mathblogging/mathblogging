@@ -4,7 +4,9 @@ from django.utils import simplejson
 def posts_json():
     posts = {}
     for post in Post.gql("WHERE category IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
-        posts[post.key().id_or_name()] = {
+        id = post.key().id_or_name()
+        posts[id] = {
+            "id": id,
             "title": post.title,
             "url": post.link,
             "blog": Feed.gql("WHERE title = :1", post.service).get().key().id_or_name(),
@@ -17,7 +19,9 @@ def posts_json():
 def blogs_json():
     blogs = {}
     for blog in Feed.gql("WHERE category IN :1", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
-        blogs[blog.key().id_or_name()] = {
+        id = blog.key().id_or_name()
+        blogs[id] = {
+            "id": id,
             "name": blog.title,
             "url": blog.homepage,
             "posts": [ post.key().id_or_name() for post in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 10", blog.title)],
@@ -33,7 +37,9 @@ def blogs_json():
 def tags_json():
     tags = {}
     for tag in Tag.all():
-        tags[tag.key().id_or_name()] = {
+        id = tag.key().id_or_name()
+        tags[id] = {
+            "id": id,
             "name": tag.name,
             "blogs": tag.blogs,
             "posts": tag.posts
