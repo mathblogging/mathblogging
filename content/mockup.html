@@ -11,17 +11,11 @@ function generate_view(data) {
         $("#threecol").empty();
         $("#threecol").html("<div id='blogs'></div><div id='posts'></div><div id='tags'></div>");
         blogs = [];
-        $.each( data.blogs, function(id, blog) {
-            blogs.push(blog);
-        });
+        $.each( data.blogs, function(id, blog) { blogs.push(blog);});
         posts = [];
-        $.each( data.posts, function(id, post) {
-            posts.push(post);
-        });
+        $.each( data.posts, function(id, post) { posts.push(post);});
         tags = [];
-        $.each( data.tags, function(id, tag) {
-            tags.push(tag);
-        });
+        $.each( data.tags, function(id, tag) { tags.push(tag);});
         posts.sort(function(a,b) {
             adate = new Date(a.date);
             bdate = new Date(b.date);
@@ -34,18 +28,43 @@ function generate_view(data) {
             return a.posts.length < b.posts.length;
         });
         $.each(blogs, function(i, blog) {
-            $("#blogs").append("<div class='blog' id='" + blog.id + "'><b>" + blog.name + "</b><br/><span class='bloginfo'>#cmts: " + blog.comments_day + "</span></div>");
+            $("#blogs").append("<div onclick='filter_posts_by_blog(" + '"' + blog.id + '"' + ")' class='blog' id='blog" + blog.id + "'><b>" + blog.name + "</b><br/><span class='bloginfo'>#cmts: " + blog.comments_day + "</span></div>");
         });
         $.each(posts, function(i, post) {
-            $("#posts").append("<div class='post' id='" + post.id + "'><b>" + post.title + "</b> <span class='postinfo'>" + data.blogs[post.blog].name + "</span><br/><span class='postinfo'>" + post.date + "</span></div>");
+            $("#posts").append("<div class='post' id='post" + post.id + "'><b><a onclick='show_page_in_overlay(" + '"' + post.url + '"' + ");'>" + post.title + "</a></b> <span class='postinfo'>" + data.blogs[post.blog].name + "</span><br/><span class='postinfo'>" + post.date + "</span></div>");
         });
         $.each( tags, function(i, tag) {
-            $("#tags").append("<div class='tag' id='" + tag.id + "'><b>" + tag.name + "</b> <span class='taginfo'>#posts: " + tag.posts.length + "</span></div>");
+            $("#tags").append("<div onclick='filter_posts_by_tag(" + '"' + tag.id + '"' + ")' class='tag' id='tag" + tag.id + "'><b>" + tag.name + "</b> <span class='taginfo'>#posts: " + tag.posts.length + "</span></div>");
         });
 }
 function load_picks() {
     $.getJSON("/jsonp/data?callback=?",function(data) {
         generate_view(data);
+    });
+}
+function show_page_in_overlay(url) {
+    $('#previewoverlaycontent').html("<iframe src='" + url + "'></iframe>");
+    $('#previewoverlay').show();
+}
+function filter_posts_by_blog(blogid) {
+    // TODO: with this implementation, it only makes sense to add *one* filter
+    b = $("#blog"+blogid).toggleClass("filter");
+    $(".post").each(function(i, el) { 
+        theid = /post(.*)/.exec(el.id)[1];
+        if(thedata.posts[theid].blog != blogid) {
+            $(el).toggle();
+        }
+    });
+}
+function filter_posts_by_tag(tagid) {
+    // TODO: with this implementation, it only makes sense to add *one* filter
+    b = $("#tag"+tagid).toggleClass("filter");
+    $(".post").each(function(i, el) { 
+        theid = /post(.*)/.exec(el.id)[1];
+        if(thedata.tags[tagid].posts.indexOf(theid) == -1) {
+            // i.e., if the post is *not* tagged with the tag
+            $(el).toggle();
+        }
     });
 }
      </script>
@@ -93,12 +112,38 @@ body {
     color: gray;
     font-size: 80%;
 }
+.filter {
+    background: yellow;
+}
+#previewoverlay {
+    position: fixed;
+    z-index: 1000;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    box-shadow: #666 0px 0px 20px;
+    background: white;
+    overflow: hidden;
+}
+#previewoverlaycontent {
+    height: 95%;
+}
+#previewoverlaycontent iframe {
+    margin: 10px;
+    width: 95%;
+    height: 95%;
+}
     </style>
     <title>Mathblogging.org</title>
   </head>
   <body>
+  <div id="previewoverlay" style="display:none;">
+    <div><a onclick="$('#previewoverlay').hide()">close</a></div>
+    <div id="previewoverlaycontent"></div>
+  </div>
   <div id="banner">
-  <img src="/content/handwriting.png"/>
+  <img src="handwriting.png"/>
   </div>
     <div id="threecol">
     Loading...
