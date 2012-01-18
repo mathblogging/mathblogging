@@ -249,20 +249,20 @@ class Feed(db.Model):
                 logging.info("Checksum changed! Processing " + self.title)
                 try:
                     feed = feedparser.parse(result.content)
+                    if _type == Post: # Deal with the type
+                        self.checksum_posts = m
+                        self.last_successful_posts_fetch_date = datetime.datetime.now()
+                        self.put()
+                    else:
+                        self.checksum_comments = m
+                        self.last_successful_comments_fetch_date = datetime.datetime.now()
+                        self.put()
+                    logging.info("Checksum updated: " + self.title)
                     for entry in feed['entries']:
                         if (last_fetch - datetime.timedelta(0,600)) <= feedparser_entry_to_timestamp_updated(entry):
                             _type.generate_entry(entry,feed,self) 
                 except LookupError, e:
                     logging.warning("There was an error parsing the feed " + url + ":" + str(e))
-                if _type == Post: # Deal with the type
-                    self.checksum_posts = m
-                    self.last_successful_posts_fetch_date = datetime.datetime.now()
-                    self.put()
-                else:
-                    self.checksum_comments = m
-                    self.last_successful_comments_fetch_date = datetime.datetime.now()
-                    self.put()
-                logging.info("Checksum updated: " + self.title)
     #def cse_homepage(self): # REMINDER: for CSE = google custome search engine = search for startpage
      #   return add_slash(strip_http(self.homepage))
 
@@ -323,6 +323,33 @@ class Entry(polymodel.PolyModel):
                 x.timestamp_created = timestamp_updated
             x.guid = guid
             x.put()
+            # next, update tags, if x is a Post.
+            if cls == Post:
+                for tag in x.tags:
+                    # see if we already have the tag in the database
+                    t = Tag.gql("WHERE name = :1", tag).get()
+                    if t == None:
+                        t = Tag()
+                        t.name = tag
+                    # now t is a valid database object
+                    # first, we add this blog to the list of blogs in which this tag is mentioned
+                    feed_id = database_feed.key().id_or_name()
+                    if feed_id == None:
+                        logging.warning("Feed object does not have id! This should not happen.")
+                    else:
+                        logging.info("Appending blog id " + str(feed_id) + " to tag " + tag + ".")
+                        t.blogs.append(str(feed_id)) # add key
+                        t.blogs = list(set(t.blogs)) # remove duplicates
+                    # next, we add this post to the list of posts in which this tag is mentioned
+                    post_id = x.key().id_or_name()
+                    if post_id == None:
+                        logging.warning("Post object does not have id! This should not happen.")
+                    else:
+                        logging.info("Appendig post id " + str(post_id) + "to tag " + tag + ".")
+                        t.posts.append(str(x.key().id_or_name())) # add key, this only works because x has already been put
+                        t.posts = list(set(t.posts)) # remove duplicates
+                    # we are done, commit t to datastore
+                    t.put()
         except Exception, e: # TODO more exception catching: 'NoneType' error when feed is malformed not enough for bug tracking.
             logging.warning("There was an error processing an Entry of the Feed :" + str(e))
 
@@ -374,6 +401,15 @@ class Post(Entry):
 
 class Comment(Entry):
     iamacomment = db.StringProperty()
+    
+###################################################
+### Tag: for storing in the database
+###################################################
+
+class Tag(db.Model):
+    name = db.StringProperty()
+    posts = db.StringListProperty()
+    blogs = db.StringListProperty()
 
 
 #######################################
@@ -393,29 +429,28 @@ class PreFeed(db.Model):
     def generate_feedobject(self):
         x = Feed()
         try:
-	    x.posts_url = self.posts_url
-	    x.homepage = self.homepage
-	    x.title = self.title
-	    x.listtitle = self.title.lower()
-	    x.person = self.person
-	    x.category = self.category
-	    x.taglist = []
-	    x.language = self.language
-	    x.priority = 1
-	    x.favicon = ""
-	    x.comments_url = self.comments_url
-	    x.comments_day = 0
-	    x.comments_week = 0
-	    x.posts_week = 0
-	    x.posts_month = 0
-	    x.checksum_posts = '' # checksum of original rss-file
-	    x.checksum_comments = '' # checksum of original rss-file
-	    x.last_successful_posts_fetch_date = datetime.datetime(1970,1,1)
-	    x.last_successful_comments_fetch_date = datetime.datetime(1970,1,1)
+            x.posts_url = self.posts_url
+            x.homepage = self.homepage
+            x.title = self.title
+            x.listtitle = self.title.lower()
+            x.person = self.person
+            x.category = self.category
+            x.taglist = []
+            x.language = self.language
+            x.priority = 1
+            x.favicon = ""
+            x.comments_url = self.comments_url
+            x.comments_day = 0
+            x.comments_week = 0
+            x.posts_week = 0
+            x.posts_month = 0
+            x.checksum_posts = '' # checksum of original rss-file
+            x.checksum_comments = '' # checksum of original rss-file
+            x.last_successful_posts_fetch_date = datetime.datetime(1970,1,1)
+            x.last_successful_comments_fetch_date = datetime.datetime(1970,1,1)
             x.put()
         except Exception, e: # TODO more exception catching: 'NoneType' error when feed is malformed not enough for bug tracking.
             logging.warning("There was an error processing the Feedobject :" + str(e))
-
 
 
 #######################################
@@ -567,8 +602,7 @@ class AllWorker(webapp.RequestHandler):
             #logging.info("Adding fetch task for feed " + feed.title + " with url: " + feed.posts_url)
             if feed.category != 'community': ### TODO GET YOUR ACT TOGETHER AND RE-ADD THEM 
                 taskqueue.add(url="/fetch", params={'url': feed.posts_url})
-
-        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers","/bystats-researchers","bystats-educators","bystats-artvis"]
+        pages_to_cache_list = ["/", "/feeds","/bytype","/weekly-picks","/bydate","/byresearchdate","/byartvishisdate","/byteacherdate","/bystats","/planetmo", "/planetmo-feed","/feed_pure","/feed_applied","/feed_history","/feed_art","/feed_fun","/feed_general","/feed_journals","/feed_teachers","/feed_visual","/feed_journalism","/feed_institutions","/feed_communities","/feed_commercial","/feed_newssite","/feed_carnival","/feed_all","/feed_researchers","/bystats-researchers","/bystats-educators","/bystats-artvis"]
         for page in pages_to_cache_list:
             taskqueue.add(url=page, method="GET")
         self.response.set_status(200)
@@ -697,6 +731,7 @@ from grid import *
 from weeklypicks import *
 from statsview import * ### TODO make like dateview all, research, teacher, hisartivs
 from feedspage import *
+from jsoninterface import PostsJSONP, BlogsJSONP, TagsJSONP, DataJSONP
 
   
 
@@ -728,6 +763,10 @@ def main():
                                         ('/cse-config', CSEConfig), ## TODO not up to date at all...
                                         ('/json', PostsJSONExport),
                                         (r'/picksjsonp.*', WeeklyPicksJSONPHandler),
+                                        (r'/jsonp/data.*', DataJSONP),
+                                        (r'/jsonp/blogs.*', BlogsJSONP),
+                                        (r'/jsonp/posts.*', PostsJSONP),
+                                        (r'/jsonp/tags.*', TagsJSONP),
                                         ('/allworker', AllWorker),
                                         ('/fetch', FetchWorker),
                                         ('/feedtaglistfetch', FeedTagListFetchWorker),
