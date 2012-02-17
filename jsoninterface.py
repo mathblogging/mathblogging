@@ -25,7 +25,7 @@ def blogs_json():
             "name": blog.title,
             "url": blog.homepage,
             "posts": [ post.key().id_or_name() for post in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 10", blog.title)],
-            "tags": [ tag.name for tag in Tag.gql("WHERE blogs = :1", blog.key().id_or_name()) ],
+            "tags": [ tag.key().id_or_name() for tag in Tag.gql("WHERE blogs = :1", blog.key().id_or_name()) ],
             "language": blog.language,
             "comments_day": blog.comments_day,
             "comments_week": blog.comments_week,
