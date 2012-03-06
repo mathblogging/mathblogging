@@ -149,13 +149,13 @@ class DataJS(TheJSONPHandler):
         # add blogs
         for blog in Feed.gql("WHERE category IN :1", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
             id = blog.key().id_or_name()
-            output["/blog/"+id] = {
+            output["/blog/"+str(id)] = {
                 "type": "/type/blog",
                 "name": blog.title,
                 "url": blog.homepage,
-                "posts": [ "/post/" + post.key().id_or_name() for post in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 10", blog.title)],
+                "posts": [ "/post/" + str(post.key().id_or_name()) for post in Post.gql("WHERE service = :1 ORDER BY timestamp_created DESC LIMIT 10", blog.title)],
                 "category": blog.category,
-                "tags": [ "/tag/" + tag.key().id_or_name() for tag in Tag.gql("WHERE blogs = :1", blog.key().id_or_name()) ],
+                "tags": [ "/tag/" + str(tag.key().id_or_name()) for tag in Tag.gql("WHERE blogs = :1", blog.key().id_or_name()) ],
                 "language": blog.language,
                 "comments-day": blog.comments_day,
                 "comments-week": blog.comments_week,
@@ -165,23 +165,23 @@ class DataJS(TheJSONPHandler):
         # add posts
         for post in Post.gql("WHERE category IN :1 ORDER BY timestamp_created DESC LIMIT 150", ['history','fun','general','commercial','art','visual','pure','applied','teacher','journalism']):
             id = post.key().id_or_name()
-            output["/post/"+id] = {
+            output["/post/"+str(id)] = {
                 "type": "/type/post",
                 "title": post.title,
                 "url": post.link,
-                "blog": "/blog/" + Feed.gql("WHERE title = :1", post.service).get().key().id_or_name(),
+                "blog": "/blog/" + str(Feed.gql("WHERE title = :1", post.service).get().key().id_or_name()),
                 "date": post.timestamp_created.strftime('%B %d,%Y %I:%M:%S %p'),
-                "tags": ["/tag/" + Tag.gql("WHERE name = :1", tag).get().key().id_or_name() for tag in post.tags ], # TODO: access Tag by key of post!,
+                "tags": ["/tag/" + str(Tag.gql("WHERE name = :1", tag).get().key().id_or_name()) for tag in post.tags ], # TODO: access Tag by key of post!,
                 "length": post.length
             }            
         # add tags
         for tag in Tag.all():
             id = tag.key().id_or_name()
-            output["/tag/"+id] = {
+            output["/tag/"+str(id)] = {
                 "type": "/type/tag",
                 "name": tag.name,
-                "blogs": [ "/blog/" + blogid for blogid in tag.blogs],
-                "posts": [ "/post/" + postid for postid in tag.posts]
+                "blogs": [ "/blog/" + str(blogid) for blogid in tag.blogs],
+                "posts": [ "/post/" + str(postid) for postid in tag.posts]
             }
         # TODO cleanup broken links (maybe Data.js handles them gracefully?)
         return simplejson.dumps(output)
