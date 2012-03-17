@@ -731,7 +731,7 @@ from grid import *
 from weeklypicks import *
 from statsview import * ### TODO make like dateview all, research, teacher, hisartivs
 from feedspage import *
-from jsoninterface import PostsJSONP, BlogsJSONP, TagsJSONP, DataJSONP
+from jsoninterface import PostsJSONP, BlogsJSONP, TagsJSONP, DataJSONP, DataJS
 
   
 
@@ -763,7 +763,7 @@ def main():
                                         ('/cse-config', CSEConfig), ## TODO not up to date at all...
                                         ('/json', PostsJSONExport),
                                         (r'/picksjsonp.*', WeeklyPicksJSONPHandler),
-                                        (r'/jsonp/data.*', DataJSONP),
+                                        (r'/jsonp/data.*', DataJS), # we're serving JSON in Data.js format here
                                         (r'/jsonp/blogs.*', BlogsJSONP),
                                         (r'/jsonp/posts.*', PostsJSONP),
                                         (r'/jsonp/tags.*', TagsJSONP),
